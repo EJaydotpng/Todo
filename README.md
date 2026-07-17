@@ -4,7 +4,8 @@ A sleek, modern, and cross-platform desktop task manager built using **.NET 10**
 
 ---
 ## Install the App directly without Compiling
-[Click Here to see the different version](https://github.com/EJaydotpng/Todo/releases/tag/v1.0.0)
+
+ - [Click Here to see the different version](https://github.com/EJaydotpng/Todo/releases/tag/v1.0.0)
 ---
 
 ## Features
