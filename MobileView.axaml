@@ -1,0 +1,606 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:TodoApp.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="360" d:DesignHeight="640"
+             x:Class="Todo.MobileView"
+             x:DataType="vm:MainViewModel"
+             Background="{DynamicResource BackgroundBrush}">
+
+    <Grid RowDefinitions="auto,auto,auto,auto,*,auto">
+        <!-- ================= HEADER ================= -->
+        <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,35,15,12">
+            <Grid ColumnDefinitions="*,auto,auto">
+                <TextBlock Text="Todo Studio" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+                
+                <!-- Add Category Button -->
+                <Button Grid.Column="1" 
+                        Content="+ Category" 
+                        Command="{Binding OpenAddCategoryDialogCommand}" 
+                        Classes="AccentButton" 
+                        Margin="0,0,8,0"
+                        FontSize="13"
+                        FontWeight="Bold"
+                        Padding="10,8"
+                        VerticalAlignment="Center"/>
+
+                <!-- Add Task Button -->
+                <Button Grid.Column="2" 
+                        Content="+ Task" 
+                        Command="{Binding OpenAddTaskDialogCommand}" 
+                        Classes="AccentButton" 
+                        FontSize="13"
+                        FontWeight="Bold"
+                        Padding="10,8"
+                        VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <!-- ================= STATUS TABS (Active / Completed) ================= -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="15,10">
+            <Grid ColumnDefinitions="*,*">
+                <!-- All Tasks (Active) View -->
+                <RadioButton Grid.Column="0" Content="Active Tasks"
+                             IsChecked="{Binding IsAllTasksViewActive, Mode=TwoWay}"
+                             Classes="SidebarButton"
+                             Theme="{StaticResource {x:Type RadioButton}}"
+                             Height="40"
+                             HorizontalAlignment="Stretch"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             FontSize="14" />
+                
+                <!-- Completed View -->
+                <RadioButton Grid.Column="1" Content="Completed Tasks"
+                             IsChecked="{Binding IsFinishedViewActive, Mode=TwoWay}"
+                             Classes="SidebarButton"
+                             Theme="{StaticResource {x:Type RadioButton}}"
+                             Height="40"
+                             HorizontalAlignment="Stretch"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             FontSize="14"
+                             Margin="10,0,0,0" />
+            </Grid>
+        </Border>
+
+        <!-- ================= SEARCH BAR ================= -->
+        <Border Grid.Row="2" Padding="15,10,15,5">
+            <TextBox Text="{Binding SearchText, Mode=TwoWay}" 
+                     Classes="SearchTextBox" 
+                     Height="40" 
+                     FontSize="14"
+                     Watermark="Search tasks..." />
+        </Border>
+
+        <!-- ================= CATEGORIES SELECTOR (Below Search Bar) ================= -->
+        <Border Grid.Row="3" Padding="15,5,15,5">
+            <Grid ColumnDefinitions="auto,*">
+                <TextBlock Text="Category: " 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                           VerticalAlignment="Center" 
+                           Margin="0,0,10,0" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding Categories}"
+                          SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                          PlaceholderText="All Categories"
+                          Height="40"
+                          HorizontalAlignment="Stretch"
+                          VerticalContentAlignment="Center"
+                          FontSize="14">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" FontSize="14"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </Grid>
+        </Border>
+
+        <!-- ================= TASKS LIST ================= -->
+        <ScrollViewer Grid.Row="4" Padding="15,5">
+            <StackPanel Spacing="10">
+                <!-- Header / View Title -->
+                <TextBlock Text="{Binding ViewTitle}" 
+                           FontSize="16" 
+                           FontWeight="Bold" 
+                           Foreground="{DynamicResource TextSecondaryBrush}" 
+                           Margin="0,5,0,5"/>
+
+                <!-- Completed view subcategory filter (only shown in completed view) -->
+                <Border IsVisible="{Binding IsFinishedViewActive}"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        CornerRadius="8"
+                        Padding="10,5"
+                        BorderBrush="{DynamicResource DividerBrush}"
+                        BorderThickness="1"
+                        Margin="0,0,0,5">
+                    <Grid ColumnDefinitions="*,auto">
+                        <TextBlock Text="Filter Subcategory:" VerticalAlignment="Center" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding CompletedSubCategories}"
+                                  SelectedItem="{Binding SelectedCompletedSubCategory, Mode=TwoWay}"
+                                  FontSize="13"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  HorizontalAlignment="Right"/>
+                    </Grid>
+                </Border>
+
+                <!-- Tasks Empty State -->
+                <Border IsVisible="{Binding !Tasks.Count}" 
+                        Background="{DynamicResource CardBackgroundBrush}" 
+                        CornerRadius="8" 
+                        Padding="25,40" 
+                        HorizontalAlignment="Stretch">
+                    <StackPanel Spacing="10" HorizontalAlignment="Center">
+                        <TextBlock Text="📋" FontSize="40" HorizontalAlignment="Center" />
+                        <TextBlock Text="No tasks found" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Add some tasks to get started!" FontSize="12" HorizontalAlignment="Center" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Task Items List -->
+                <ListBox ItemsSource="{Binding Tasks}"
+                         SelectedItem="{Binding SelectedTask, Mode=TwoWay}"
+                         Background="Transparent"
+                         Padding="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource CardBackgroundBrush}" 
+                                    CornerRadius="8" 
+                                    Padding="12,10" 
+                                    Margin="0,0,0,8"
+                                    BorderBrush="{DynamicResource DividerBrush}"
+                                    BorderThickness="1">
+                                <Grid ColumnDefinitions="30,*,120" RowDefinitions="auto,auto">
+                                    <!-- CheckBox -->
+                                    <CheckBox Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
+                                              IsChecked="{Binding IsFinished, Mode=OneWay}"
+                                              Command="{Binding $parent[UserControl].DataContext.ToggleTaskStatusCommand}"
+                                              CommandParameter="{Binding}"
+                                              Margin="0,0,8,0"
+                                              VerticalAlignment="Center"/>
+
+                                    <!-- Task Title & Description -->
+                                    <StackPanel Grid.Column="1" Grid.Row="0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" 
+                                                   FontSize="15" 
+                                                   FontWeight="SemiBold" 
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Description}" 
+                                                   FontSize="12" 
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                   IsVisible="{Binding !!Description}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Category Badge & Subcategory -->
+                                    <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Horizontal" Spacing="5" Margin="0,4,0,0">
+                                        <!-- Category Label -->
+                                        <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="4" Padding="6,2" IsVisible="{Binding !!Category}">
+                                            <TextBlock Text="{Binding Category.Name}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                                        </Border>
+                                        <!-- Subcategory Label -->
+                                        <Border Background="#FFF3E0" CornerRadius="4" Padding="6,2" IsVisible="{Binding !!SubCategory}">
+                                            <TextBlock Text="{Binding SubCategory}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/>
+                                        </Border>
+                                        <!-- Subtasks Indicator -->
+                                        <TextBlock Text="{Binding Subtasks.Count, StringFormat='({0} subtasks)'}" 
+                                                   FontSize="10" 
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                   IsVisible="{Binding !!Subtasks.Count}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Task Actions (Fixed width 120px to prevent clipping) -->
+                                    <StackPanel Grid.Column="2" Grid.Row="0" Grid.RowSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <!-- Edit -->
+                                        <Button Content="Edit" 
+                                                Command="{Binding $parent[UserControl].DataContext.OpenEditTaskDialogCommand}" 
+                                                CommandParameter="{Binding}"
+                                                Classes="TextButton"
+                                                Foreground="{DynamicResource PrimaryBrush}"
+                                                FontSize="13"
+                                                FontWeight="Bold"
+                                                Padding="8,5"
+                                                Margin="0,0,5,0"/>
+                                        <!-- Delete -->
+                                        <Button Content="Delete" 
+                                                Command="{Binding $parent[UserControl].DataContext.DeleteTaskCommand}" 
+                                                CommandParameter="{Binding}"
+                                                Classes="TextButton"
+                                                Foreground="{DynamicResource DangerBrush}"
+                                                FontSize="13"
+                                                FontWeight="Bold"
+                                                Padding="8,5"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.Styles>
+                        <Style Selector="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                        <Style Selector="ListBoxItem:selected">
+                            <Setter Property="Background" Value="Transparent" />
+                        </Style>
+                    </ListBox.Styles>
+                </ListBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ================= BOTTOM TOOLBAR (DATA & REPORTS) ================= -->
+        <Border Grid.Row="5" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="15,12">
+            <Grid ColumnDefinitions="*,*">
+                <!-- Data Modal Trigger -->
+                <Button Grid.Column="0" Content="Data" 
+                        Command="{Binding OpenDataModalCommand}"
+                        Classes="TextButton" 
+                        HorizontalAlignment="Center" 
+                        FontSize="14"
+                        FontWeight="Bold"/>
+                
+                <!-- Report Modal Trigger -->
+                <Button Grid.Column="1" Content="Report" 
+                        Command="{Binding OpenReportModalCommand}"
+                        Classes="TextButton" 
+                        HorizontalAlignment="Center" 
+                        FontSize="14"
+                        FontWeight="Bold"/>
+            </Grid>
+        </Border>
+
+        <!-- ========================================================================= -->
+        <!-- ======================== FULLSCREEN MODAL DIALOGS ======================== -->
+        <!-- ========================================================================= -->
+
+        <!-- ================= TASK DETAILS & SUBTASKS MODAL SHEET ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding SelectedTask, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="340" MaxHeight="520">
+                <Grid RowDefinitions="auto,auto,auto,auto,*,auto" DataContext="{Binding SelectedTask}">
+                    <!-- Title & Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,auto" Margin="0,0,0,10">
+                        <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="✕" Command="{Binding $parent[UserControl].DataContext.CloseTaskDetailsCommand}" Classes="TextButton" FontSize="18" Padding="5" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Description -->
+                    <Border Grid.Row="1" Background="{DynamicResource BackgroundBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,15" IsVisible="{Binding !!Description}">
+                        <TextBlock Text="{Binding Description}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Border>
+
+                    <!-- Primary Actions (Centered & Icon-Free) -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,0,0,15">
+                        <Button Grid.Column="0" Content="Edit Task" 
+                                Command="{Binding $parent[UserControl].DataContext.OpenEditTaskDialogCommand}" 
+                                CommandParameter="{Binding}"
+                                Classes="ModernButton" 
+                                Margin="0,0,8,0"
+                                FontSize="13"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Delete Task" 
+                                Command="{Binding $parent[UserControl].DataContext.DeleteTaskCommand}" 
+                                CommandParameter="{Binding}"
+                                Classes="DangerButton" 
+                                FontSize="13"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Center"
+                                VerticalContentAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Dates & Info -->
+                    <StackPanel Grid.Row="3" Spacing="6" Margin="0,0,0,15">
+                        <Grid ColumnDefinitions="auto,*" IsVisible="{Binding !!Category}">
+                            <TextBlock Text="Category: " FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Category.Name}" FontSize="12" Foreground="{DynamicResource PrimaryBrush}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="auto,*" IsVisible="{Binding !!SubCategory}">
+                            <TextBlock Text="Subcategory: " FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding SubCategory}" FontSize="12" Foreground="{DynamicResource AccentBrush}"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="auto,*">
+                            <TextBlock Text="Created: " FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{Binding DateStarted, StringFormat='yyyy-MM-dd HH:mm'}" FontSize="12"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Subtasks List Section -->
+                    <Grid Grid.Row="4" RowDefinitions="auto,*" Margin="0,0,0,15">
+                        <TextBlock Grid.Row="0" Text="SUBTASKS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                        
+                        <ScrollViewer Grid.Row="1">
+                            <StackPanel Spacing="5">
+                                <!-- Empty state subtasks -->
+                                <TextBlock Text="No subtasks yet." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding !Subtasks.Count}" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+
+                                <!-- Subtasks checklist -->
+                                <ListBox ItemsSource="{Binding Subtasks}" Background="Transparent" Padding="0">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="0,6">
+                                                <Grid ColumnDefinitions="*,auto">
+                                                    <!-- Toggle subtask -->
+                                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsFinished, Mode=OneWay}"
+                                                              Command="{Binding $parent[UserControl].DataContext.ToggleSubtaskStatusCommand}"
+                                                              CommandParameter="{Binding}"
+                                                              VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Title}" FontSize="13" TextWrapping="Wrap"/>
+                                                    </CheckBox>
+                                                    <!-- Delete subtask -->
+                                                    <Button Grid.Column="1" Content="✕" 
+                                                            Command="{Binding $parent[UserControl].DataContext.DeleteSubtaskCommand}" 
+                                                            CommandParameter="{Binding}"
+                                                            Classes="TextButton" 
+                                                            Foreground="{DynamicResource DangerBrush}"
+                                                            FontSize="13" Padding="5" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                    <ListBox.Styles>
+                                        <Style Selector="ListBoxItem">
+                                            <Setter Property="Padding" Value="0"/>
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Style>
+                                    </ListBox.Styles>
+                                </ListBox>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!-- Add Subtask Trigger Button -->
+                    <Button Grid.Row="5" Content="+ Add Subtask" 
+                            Command="{Binding $parent[UserControl].DataContext.OpenAddSubtaskDialogCommand}" 
+                            Classes="ModernButton" 
+                            HorizontalAlignment="Stretch" 
+                            HorizontalContentAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= CONSOLIDATED DATA (BACKUP/RESTORE) MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsDataModalVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Data Management" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                    <TextBlock Text="Choose to backup your tasks or restore your database from a local file." FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+
+                    <!-- Backup Button & Description -->
+                    <StackPanel Spacing="4">
+                        <Button Content="Backup Data" 
+                                Command="{Binding ExportDatabaseCommand}" 
+                                Classes="ModernButton" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" 
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Height="40"/>
+                        <TextBlock Text="Export all your tasks, categories, and logs to a backup file to move to other devices." 
+                                   FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="2,0,2,10"/>
+                    </StackPanel>
+
+                    <!-- Restore Button & Description -->
+                    <StackPanel Spacing="4">
+                        <Button Content="Restore Data" 
+                                Command="{Binding ImportDatabaseCommand}" 
+                                Classes="DangerButton" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" 
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Height="40"/>
+                        <TextBlock Text="Import a previously saved backup file to load your progress. Warning: This will overwrite your current tasks!" 
+                                   FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="2,0,2,10"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Content="Cancel" 
+                            Command="{Binding CloseDataModalCommand}" 
+                            Classes="TextButton" 
+                            HorizontalAlignment="Stretch" 
+                            HorizontalContentAlignment="Center" 
+                            FontSize="14"
+                            FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= CONSOLIDATED REPORT (PDF/EXCEL) MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsReportModalVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Generate Reports" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                    <TextBlock Text="Export your tasks and categories as a document to share or analyze." FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,5"/>
+
+                    <!-- PDF Report Button & Description -->
+                    <StackPanel Spacing="4">
+                        <Button Content="PDF Report" 
+                                Command="{Binding GenerateReportCommand}" 
+                                Classes="ModernButton" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" 
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Height="40"/>
+                        <TextBlock Text="Creates a beautiful, print-ready visual PDF document detailing summary statistics and grouped tasks tables." 
+                                   FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="2,0,2,10"/>
+                    </StackPanel>
+
+                    <!-- Excel Export Button & Description -->
+                    <StackPanel Spacing="4">
+                        <Button Content="Excel Export" 
+                                Command="{Binding GenerateExcelReportCommand}" 
+                                Classes="ModernButton" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center" 
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Height="40"/>
+                        <TextBlock Text="Generates an Excel spreadsheet (.xlsx) complete with color-coded statuses, auto-fit columns, and built-in interactive filters." 
+                                   FontSize="11" 
+                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                   TextWrapping="Wrap" 
+                                   Margin="2,0,2,10"/>
+                    </StackPanel>
+
+                    <!-- Close Button -->
+                    <Button Content="Cancel" 
+                            Command="{Binding CloseReportModalCommand}" 
+                            Classes="TextButton" 
+                            HorizontalAlignment="Stretch" 
+                            HorizontalContentAlignment="Center" 
+                            FontSize="14"
+                            FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= ADD/EDIT TASK MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsTaskDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="{Binding IsEditMode, Converter={x:Static StringConverters.IsNullOrEmpty}, ConverterParameter='Add Task'}" 
+                               FontSize="18" FontWeight="Bold"/>
+
+                    <!-- Title -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Title *" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Text="{Binding DialogTaskTitle, Mode=TwoWay}" Classes="ModernTextBox" FontSize="14"/>
+                    </StackPanel>
+
+                    <!-- Description -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Description" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Text="{Binding DialogTaskDescription, Mode=TwoWay}" Classes="ModernTextBox" Height="70" AcceptsReturn="True" FontSize="14"/>
+                    </StackPanel>
+
+                    <!-- Category -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Category" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding Categories}"
+                                  SelectedItem="{Binding DialogTaskCategory, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" FontSize="14"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- Subcategory -->
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Sub-Category (Optional tag)" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Text="{Binding DialogTaskSubCategory, Mode=TwoWay}" Classes="ModernTextBox" FontSize="14"/>
+                    </StackPanel>
+
+                    <!-- Buttons -->
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseTaskDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Save" Command="{Binding SaveTaskCommand}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= COMPLETE TASK OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsCompleteTaskDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Complete Task" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                    <TextBlock Text="Would you like to tag this completed task with a Sub-Category (e.g., Working, Personal)? Leaves empty for none." FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    
+                    <TextBox Text="{Binding CompleteTaskSubCategory, Mode=TwoWay}" Classes="ModernTextBox" Watermark="e.g. Work, Admin, Sideproject..." FontSize="14"/>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseCompleteTaskDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Save" Command="{Binding SaveCompleteTaskCommand}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= DYNAMIC CONFIRM OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsConfirmDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="{Binding ConfirmTitle}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource DangerBrush}"/>
+                    <TextBlock Text="{Binding ConfirmMessage}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="No" Command="{Binding CancelConfirmCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Yes" Command="{Binding ConfirmCommand}" Classes="DangerButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= DYNAMIC ALERT OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsAlertDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Alert" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
+                    <TextBlock Text="{Binding AlertMessage}" FontSize="13" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}"/>
+
+                    <Button Content="OK" Command="{Binding CloseAlertDialogCommand}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= ADD CATEGORY OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsCategoryDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Add New Category" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                    
+                    <TextBox Text="{Binding NewCategoryName, Mode=TwoWay}" Watermark="e.g. Work, Study, Health..." Classes="ModernTextBox" FontSize="14"/>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseCategoryDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Save" Command="{Binding AddCategoryCommand}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= ADD SUBTASK OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsSubtaskDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Add New Subtask" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
+                    
+                    <TextBox Text="{Binding NewSubtaskTitle, Mode=TwoWay}" Watermark="Subtask Title" Classes="ModernTextBox" FontSize="14"/>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseSubtaskDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Save" Command="{Binding AddSubtaskCommand}" CommandParameter="{Binding SelectedTask}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

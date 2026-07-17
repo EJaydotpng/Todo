@@ -188,6 +188,20 @@ namespace TodoApp.ViewModels
             set => SetProperty(ref _isSubtaskDialogVisible, value);
         }
 
+        private bool _isDataModalVisible;
+        public bool IsDataModalVisible
+        {
+            get => _isDataModalVisible;
+            set => SetProperty(ref _isDataModalVisible, value);
+        }
+
+        private bool _isReportModalVisible;
+        public bool IsReportModalVisible
+        {
+            get => _isReportModalVisible;
+            set => SetProperty(ref _isReportModalVisible, value);
+        }
+
         // Complete Task Dialog properties for Sub-Category prompt
         private bool _isCompleteTaskDialogVisible;
         public bool IsCompleteTaskDialogVisible
@@ -293,6 +307,7 @@ namespace TodoApp.ViewModels
         public ICommand ToggleTaskStatusCommand { get; }
         public ICommand CloseCompleteTaskDialogCommand { get; }
         public ICommand SaveCompleteTaskCommand { get; }
+        public ICommand CloseTaskDetailsCommand { get; }
 
         // Subtask Commands
         public ICommand OpenAddSubtaskDialogCommand { get; }
@@ -308,6 +323,10 @@ namespace TodoApp.ViewModels
         // Database Backup & Restore Commands
         public ICommand ExportDatabaseCommand { get; }
         public ICommand ImportDatabaseCommand { get; }
+        public ICommand OpenDataModalCommand { get; }
+        public ICommand CloseDataModalCommand { get; }
+        public ICommand OpenReportModalCommand { get; }
+        public ICommand CloseReportModalCommand { get; }
 
         // Confirm Overlay Dialog Commands
         public ICommand ConfirmCommand { get; }
@@ -341,6 +360,7 @@ namespace TodoApp.ViewModels
             ToggleTaskStatusCommand = new AsyncRelayCommand<TaskItem>(ToggleTaskStatusAsync);
             CloseCompleteTaskDialogCommand = new AsyncRelayCommand(CloseCompleteTaskDialogAsync);
             SaveCompleteTaskCommand = new AsyncRelayCommand(SaveCompleteTaskAsync);
+            CloseTaskDetailsCommand = new RelayCommand(() => SelectedTask = null);
 
             OpenAddSubtaskDialogCommand = new RelayCommand(() => { NewSubtaskTitle = string.Empty; IsSubtaskDialogVisible = true; });
             CloseSubtaskDialogCommand = new RelayCommand(() => IsSubtaskDialogVisible = false);
@@ -371,6 +391,11 @@ namespace TodoApp.ViewModels
             });
 
             CloseAlertDialogCommand = new RelayCommand(() => IsAlertDialogVisible = false);
+
+            OpenDataModalCommand = new RelayCommand(() => IsDataModalVisible = true);
+            CloseDataModalCommand = new RelayCommand(() => IsDataModalVisible = false);
+            OpenReportModalCommand = new RelayCommand(() => IsReportModalVisible = true);
+            CloseReportModalCommand = new RelayCommand(() => IsReportModalVisible = false);
         }
 
         // Lifecycle Actions
@@ -781,6 +806,7 @@ namespace TodoApp.ViewModels
         // PDF Report Generation Action (Uses abstracted cross-platform dialog)
         private async Task GenerateReportAsync()
         {
+            IsReportModalVisible = false; // Hide mobile selection overlay
             var fileName = $"TodoReport_{DateTime.Now:yyyyMMdd}.pdf";
             var filePath = await _storageService.SaveFileDialogAsync(fileName, "pdf", "PDF files (*.pdf)");
 
@@ -803,6 +829,7 @@ namespace TodoApp.ViewModels
         // Excel Report Generation Action (Uses abstracted cross-platform dialog)
         private async Task GenerateExcelReportAsync()
         {
+            IsReportModalVisible = false; // Hide mobile selection overlay
             var fileName = $"TodoReport_{DateTime.Now:yyyyMMdd}.xlsx";
             var filePath = await _storageService.SaveFileDialogAsync(fileName, "xlsx", "Excel files (*.xlsx)");
 
@@ -825,6 +852,7 @@ namespace TodoApp.ViewModels
         // Database Backup (Export) Action
         private async Task ExportDatabaseAsync()
         {
+            IsDataModalVisible = false; // Hide mobile selection overlay
             var fileName = $"TodoBackup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
             var filePath = await _storageService.SaveFileDialogAsync(fileName, "db", "SQLite Database (*.db)");
 
@@ -847,6 +875,7 @@ namespace TodoApp.ViewModels
         // Database Restore (Import) Action
         private async Task ImportDatabaseAsync()
         {
+            IsDataModalVisible = false; // Hide mobile selection overlay
             ConfirmTitle = "Restore Database";
             ConfirmMessage = "Are you sure you want to restore? This will overwrite your current tasks and categories with the selected backup file.";
             _confirmCallback = async () =>

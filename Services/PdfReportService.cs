@@ -1,3 +1,4 @@
+#if !ANDROID
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -44,8 +45,6 @@ namespace TodoApp.Services
 
             // Calculations
             int totalTasksCount = categories.Sum(c => c.Tasks.Count) + uncategorizedTasks.Count;
-            // Note: Since uncategorized tasks includes subtasks internally, let's count only top level + non-root.
-            // But a simpler approach is to count total TaskItems in database
             int databaseTotalTasks = 0;
             int databaseFinishedTasks = 0;
             int databaseUnfinishedTasks = 0;
@@ -215,3 +214,18 @@ namespace TodoApp.Services
         }
     }
 }
+#else
+using System;
+using System.Threading.Tasks;
+
+namespace TodoApp.Services
+{
+    public class PdfReportService : IPdfReportService
+    {
+        public Task GenerateReportAsync(string filePath)
+        {
+            throw new PlatformNotSupportedException("PDF report generation is only supported on Desktop (Windows, Linux, macOS).");
+        }
+    }
+}
+#endif

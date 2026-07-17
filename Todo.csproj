@@ -8,6 +8,14 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <!-- Exclude mobile platform project subdirectory from desktop compilation -->
+  <ItemGroup>
+    <Compile Remove="Android\**" />
+    <EmbeddedResource Remove="Android\**" />
+    <None Remove="Android\**" />
+    <AvaloniaXaml Remove="Android\**" />
+  </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="app.ico" />
   </ItemGroup>

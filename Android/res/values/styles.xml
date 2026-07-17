@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+  <style name="MyTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowTranslucentStatus">false</item>
+    <item name="android:statusBarColor">#3F51B5</item> <!-- Matches PrimaryBrush -->
+  </style>
+
+  <style name="MyTheme.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="android:windowBackground">@color/splash_background</item>
+  </style>
+</resources>
