@@ -1,4 +1,4 @@
-# Todo Studio 📝
+# Todo Studio
 
 A sleek, modern, and cross-platform desktop task manager built using **.NET 10**, **Avalonia UI (MVVM)**, and **Entity Framework Core (SQLite)**. It is designed to work seamlessly across Windows, Linux, macOS, and Android without requiring any cloud registrations or active internet connection.
 
