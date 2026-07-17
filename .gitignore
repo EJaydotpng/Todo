@@ -7,12 +7,22 @@ todo.db-wal
 *.user
 *.suo
 
-# Build outputs and dependencies
-bin/
-obj/
-publish/
+# Build outputs and dependencies (Recursive matches)
+**/bin/
+**/obj/
+**/publish/
+
+# Android Specific Ignores
+**/local.properties
+.gradle/
+Captures/
+*.apk
+*.ap_
+*.aab
 
 # IDE Files
 .vs/
 .idea/
 .vscode/
+*.swp
+*.DS_Store
