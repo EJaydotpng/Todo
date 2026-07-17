@@ -1,0 +1,153 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Todo.App"
+             RequestedThemeVariant="Light">
+
+    <Application.Resources>
+        <!-- Color Palette -->
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#3F51B5" />
+        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#303F9F" />
+        <SolidColorBrush x:Key="PrimaryLightBrush" Color="#E8EAF6" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF5722" />
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#F5F7FA" />
+        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#212121" />
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#757575" />
+        <SolidColorBrush x:Key="DividerBrush" Color="#E0E0E0" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="#4CAF50" />
+        <SolidColorBrush x:Key="WarningBrush" Color="#FF9800" />
+        <SolidColorBrush x:Key="DangerBrush" Color="#F44336" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+        <!-- Base Button Style -->
+        <Style Selector="Button.ModernButton">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.ModernButton:pointerover">
+            <Setter Property="Background" Value="{DynamicResource PrimaryDarkBrush}" />
+        </Style>
+        <Style Selector="Button.ModernButton:disabled">
+            <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        </Style>
+
+        <!-- Accent Button Style -->
+        <Style Selector="Button.AccentButton">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.AccentButton:pointerover">
+            <Setter Property="Background" Value="#E64A19" />
+        </Style>
+
+        <!-- TextButton Style -->
+        <Style Selector="Button.TextButton">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.TextButton:pointerover">
+            <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
+        </Style>
+
+        <!-- Danger Button Style -->
+        <Style Selector="Button.DangerButton">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.DangerButton:pointerover">
+            <Setter Property="Background" Value="#D32F2F" />
+        </Style>
+
+        <!-- Modern TextBox Style -->
+        <Style Selector="TextBox.ModernTextBox">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+        </Style>
+        <Style Selector="TextBox.ModernTextBox:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="TextBox.ModernTextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+        </Style>
+
+        <!-- Search TextBox Style with Watermark -->
+        <Style Selector="TextBox.SearchTextBox">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Padding" Value="15,6,10,6" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="Watermark" Value="Search tasks..." />
+        </Style>
+        <Style Selector="TextBox.SearchTextBox:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="TextBox.SearchTextBox:focus">
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+        </Style>
+
+        <!-- Navigation Tab Button Style (Sidebar items) -->
+        <Style Selector="RadioButton.SidebarButton">
+            <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="15,10" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="4,0,0,0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="RadioButton.SidebarButton:checked">
+            <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryDarkBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        </Style>
+        <Style Selector="RadioButton.SidebarButton:pointerover">
+            <Setter Property="Background" Value="#F0F0F0" />
+        </Style>
+    </Application.Styles>
+</Application>
