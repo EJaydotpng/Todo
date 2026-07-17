@@ -4,7 +4,7 @@ A sleek, modern, and cross-platform desktop task manager built using **.NET 10**
 
 ---
 
-## ✨ Features
+## Features
 
 * **Category & Sub-Category Organization:** Group tasks case-insensitively and keep track of your task streams.
 * **Hierarchical Subtasks:** Create and toggle multi-level nested checklists inside any main task.
@@ -16,7 +16,7 @@ A sleek, modern, and cross-platform desktop task manager built using **.NET 10**
 
 ---
 
-## 🛠️ Development Requirements
+## Development Requirements
 
 To run, develop, or build the codebase, you need:
 
@@ -30,7 +30,7 @@ To run, develop, or build the codebase, you need:
    - **Linux:** X11 or Wayland-based window manager (e.g., GNOME, KDE, Arch i3/sway) with `fontconfig` and `xorg-server` installed.
    - **macOS:** macOS Sierra 10.12 or newer.
 
-### 🐧 Installing Linux System Dependencies
+### Installing Linux System Dependencies
 If you are developing or running the application on a minimal Linux environment (like Arch Linux, minimal Ubuntu, or Fedora), you need a few native graphics, windowing, and font libraries.
 
 We have included a helper bash script to automatically detect your package manager and install all of them at once:
@@ -42,7 +42,7 @@ chmod +x install-deps.sh
 
 ---
 
-## 📦 Principal Dependencies
+## Principal Dependencies
 
 The project relies on these core NuGet dependencies:
 * **Avalonia UI** (v11.1+) — Modern, cross-platform XAML GUI framework.
@@ -53,7 +53,7 @@ The project relies on these core NuGet dependencies:
 
 ---
 
-## 🚀 Running Locally
+## Running Locally
 
 1. Clone the repository to your computer:
    ```bash
@@ -78,18 +78,18 @@ The project relies on these core NuGet dependencies:
 
 ---
 
-## 🏗️ Publishing Standalone Single-File Executables (Desktop)
+## Publishing Standalone Single-File Executables (Desktop)
 
 These commands package the application, the .NET 10.0 runtime, and native dependencies (such as SQLite, HarfBuzz, and Skia graphics) into **a single executable**. This allows anyone to run the program on their computer without installing .NET or copying adjacent `.dll` / `.so` files.
 
-### 🪟 Windows (64-bit)
+### Windows (64-bit)
 Produces a single `Todo.exe` executable:
 ```bash
 dotnet publish Todo.csproj -c Release -r win-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --self-contained true
 ```
 * **Output Path:** `bin/Release/net10.0/win-x64/publish/Todo.exe`
 
-### 🐧 Linux (64-bit / Arch / Debian / Fedora)
+### Linux (64-bit / Arch / Debian / Fedora)
 Produces a single `Todo` binary:
 ```bash
 dotnet publish Todo.csproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --self-contained true
@@ -97,7 +97,7 @@ dotnet publish Todo.csproj -c Release -r linux-x64 -p:PublishSingleFile=true -p:
 * **Output Path:** `bin/Release/net10.0/linux-x64/publish/Todo`
 * **Execution:** Set the execution bit on Linux using `chmod +x Todo` before running.
 
-### 🍎 macOS (Intel & Apple Silicon)
+### macOS (Intel & Apple Silicon)
 Choose the runtime identifier (`osx-x64` for Intel Macs, or `osx-arm64` for Apple M1/M2/M3 chips):
 
 * **Apple Silicon M-Series Macs:**
@@ -112,7 +112,7 @@ Choose the runtime identifier (`osx-x64` for Intel Macs, or `osx-arm64` for Appl
 
 ---
 
-## 📱 Mobile App Support (Android)
+## Mobile App Support (Android)
 
 This repository includes a dedicated, touch-optimized **Android mobile project** inside the `Android/` folder!
 
@@ -149,7 +149,7 @@ This repository includes a dedicated, touch-optimized **Android mobile project**
 
 ---
 
-## 📂 Database Locations
+## Database Locations
 The SQLite data file (`todo.db`) is automatically initialized and created locally at runtime:
 * **Windows:** `%LOCALAPPDATA%\TodoStudio\todo.db`
 * **Linux:** `~/.local/share/TodoStudio/todo.db`
@@ -157,5 +157,5 @@ The SQLite data file (`todo.db`) is automatically initialized and created locall
 
 ---
 
-## 📄 Licensing
+## Licensing
 This project uses **EPPlus 8** which is licensed under the PolyForm Noncommercial License for personal and non-commercial purposes. For commercial deployment, a separate license must be acquired from EPPlus Software.
