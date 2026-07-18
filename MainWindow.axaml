@@ -5,6 +5,7 @@
         xmlns:local="clr-namespace:Todo"
         mc:Ignorable="d"
         x:Class="Todo.MainWindow"
+        Name="mainWindow"
         Title="TODO Studio" Icon="app.ico" Height="700" Width="1100"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource BackgroundBrush}">
@@ -165,7 +166,7 @@
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
                                     <Button Grid.Column="1" 
                                             Content="×" 
-                                            Command="{Binding $parent[Window].DataContext.DeleteAccountCommand}" 
+                                            Command="{Binding #mainWindow.DataContext.DeleteAccountCommand}" 
                                             CommandParameter="{Binding}"
                                             Classes="TextButton"
                                             Foreground="{DynamicResource DangerBrush}"
@@ -1029,6 +1030,7 @@
                 </Grid>
             </Border>
         </Grid>
+    </Grid>
 
         <!-- ================= CUSTOM CONFIRM OVERLAY MODAL ================= -->
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
@@ -1085,6 +1087,5 @@
                 </Grid>
             </Border>
         </Grid>
-    </Grid>
     </Panel>
 </Window>

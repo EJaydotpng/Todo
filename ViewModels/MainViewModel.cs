@@ -552,7 +552,7 @@ namespace TodoApp.ViewModels
             OpenAddAccountDialogCommand = new RelayCommand(() => { NewAccountName = string.Empty; IsAddAccountDialogVisible = true; });
             CloseAddAccountDialogCommand = new RelayCommand(() => IsAddAccountDialogVisible = false);
             SaveAccountCommand = new AsyncRelayCommand(SaveAccountAsync);
-            DeleteAccountCommand = new AsyncRelayCommand<FinanceAccount>(DeleteAccountAsync);
+            DeleteAccountCommand = new AsyncRelayCommand<FinanceAccount?>(DeleteAccountAsync);
 
             OpenAddTransactionDialogCommand = new RelayCommand(() => {
                 NewTransactionDescription = string.Empty;
@@ -753,56 +753,60 @@ namespace TodoApp.ViewModels
         {
             if (account == null) return;
 
-            using var db = new TodoDbContext();
-            bool hasTransactions = await db.LedgerEntries.AnyAsync(le => le.AccountId == account.Id);
+            using (var db = new TodoDbContext())
+            {
+                bool hasTransactions = await db.LedgerEntries.AnyAsync(le => le.AccountId == account.Id);
 
-            if (hasTransactions)
-            {
-                ConfirmTitle = "Archive Account";
-                ConfirmMessage = $"This account '{account.Name}' has historical transactions and cannot be deleted permanently without breaking your ledger history.\n\nWould you like to archive/deactivate it instead? It will be hidden from your active list.";
-                _confirmCallback = async () =>
+                if (hasTransactions)
                 {
-                    try
+                    ConfirmTitle = "Archive Account";
+                    ConfirmMessage = $"This account '{account.Name}' has historical transactions and cannot be deleted permanently without breaking your ledger history.\n\nWould you like to archive/deactivate it instead? It will be hidden from your active list.";
+                    _confirmCallback = async () =>
                     {
-                        var acc = await db.FinanceAccounts.FindAsync(account.Id);
-                        if (acc != null)
+                        try
                         {
-                            acc.IsActive = false;
-                            await db.SaveChangesAsync();
+                            using var localDb = new TodoDbContext();
+                            var acc = await localDb.FinanceAccounts.FindAsync(account.Id);
+                            if (acc != null)
+                            {
+                                acc.IsActive = false;
+                                await localDb.SaveChangesAsync();
+                            }
+                            await LoadFinanceDataAsync(reloadAccounts: true);
                         }
-                        await LoadFinanceDataAsync(reloadAccounts: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        AlertMessage = $"Error deactivating account: {ex.Message}";
-                        IsAlertDialogVisible = true;
-                    }
-                };
-                IsConfirmDialogVisible = true;
-            }
-            else
-            {
-                ConfirmTitle = "Delete Account";
-                ConfirmMessage = $"Are you sure you want to permanently delete the empty account '{account.Name}'?";
-                _confirmCallback = async () =>
+                        catch (Exception ex)
+                        {
+                            AlertMessage = $"Error deactivating account: {ex.Message}";
+                            IsAlertDialogVisible = true;
+                        }
+                    };
+                    IsConfirmDialogVisible = true;
+                }
+                else
                 {
-                    try
+                    ConfirmTitle = "Delete Account";
+                    ConfirmMessage = $"Are you sure you want to permanently delete the empty account '{account.Name}'?";
+                    _confirmCallback = async () =>
                     {
-                        var acc = await db.FinanceAccounts.FindAsync(account.Id);
-                        if (acc != null)
+                        try
                         {
-                            db.FinanceAccounts.Remove(acc);
-                            await db.SaveChangesAsync();
+                            using var localDb = new TodoDbContext();
+                            var acc = await localDb.FinanceAccounts.FindAsync(account.Id);
+                            if (acc != null)
+                            {
+                                localDb.FinanceAccounts.Remove(acc);
+                                await localDb.SaveChangesAsync();
+                            }
+                            await LoadFinanceDataAsync(reloadAccounts: true);
                         }
-                        await LoadFinanceDataAsync(reloadAccounts: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        AlertMessage = $"Error deleting account: {ex.Message}";
-                        IsAlertDialogVisible = true;
-                    }
-                };
-                IsConfirmDialogVisible = true;
+                        catch (Exception ex)
+                        {
+                            AlertMessage = $"Error deleting account: {ex.Message}";
+                            IsAlertDialogVisible = true;
+                        }
+                    };
+                    IsConfirmDialogVisible = true;
+                }
             }
         }
 
