@@ -8,15 +8,301 @@
              x:DataType="vm:MainViewModel"
              Background="{DynamicResource BackgroundBrush}">
 
-    <Grid RowDefinitions="auto,auto,auto,auto,*,auto">
-        <!-- ================= HEADER ================= -->
-        <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,35,15,12">
-            <Grid ColumnDefinitions="*,auto,auto">
-                <TextBlock Text="Todo Studio" 
-                           FontSize="20" 
-                           FontWeight="Bold" 
-                           Foreground="White" 
-                           VerticalAlignment="Center"/>
+    <Panel>
+        <!-- ================= MOBILE HOME SUITE ================= -->
+        <ScrollViewer IsVisible="{Binding IsHomeScreenActive}">
+            <StackPanel Margin="20,50,20,20" Spacing="25" VerticalAlignment="Center">
+                <!-- Header / Welcome -->
+                <StackPanel Spacing="5" HorizontalAlignment="Center" Margin="0,0,0,10">
+                    <Border Background="{DynamicResource PrimaryBrush}" CornerRadius="12" Width="60" Height="60" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <TextBlock Text="✓" Foreground="White" FontSize="32" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="Todo Suite" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Text="Organize your workflow &amp; budget" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Task Management Card -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="16" Padding="20">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Border Background="{DynamicResource PrimaryLightBrush}" Width="40" Height="40" CornerRadius="10">
+                                <TextBlock Text="✓" Foreground="{DynamicResource PrimaryBrush}" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Task Management" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        
+                        <TextBlock Text="Manage active and completed tasks, organize categories, and track subtasks on the go." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18" />
+                        
+                        <Button Content="Open Tasks" 
+                                Command="{Binding GoToTaskManagementCommand}" 
+                                Classes="ModernButton" 
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center"
+                                Height="42" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Money Manager Card -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" CornerRadius="16" Padding="20">
+                    <StackPanel Spacing="15">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <Border Background="#E8F5E9" Width="40" Height="40" CornerRadius="10">
+                                <TextBlock Text="$" Foreground="#4CAF50" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Money Manager" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        
+                        <TextBlock Text="Track daily transactions, define cashflow categories, and monitor savings." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="18" />
+                        
+                        <Button Content="Open Money Manager" 
+                                Command="{Binding GoToMoneyManagerCommand}" 
+                                Classes="ModernButton" 
+                                Background="#4CAF50"
+                                HorizontalAlignment="Stretch" 
+                                HorizontalContentAlignment="Center"
+                                Height="42">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover">
+                                    <Setter Property="Background" Value="#388E3C" />
+                                </Style>
+                            </Button.Styles>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ================= MOBILE MONEY MANAGER ================= -->
+        <Grid IsVisible="{Binding IsMoneyScreenActive}" RowDefinitions="auto,auto,*,auto" Background="{DynamicResource BackgroundBrush}">
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#4CAF50" Padding="15,35,15,12">
+                <Grid ColumnDefinitions="auto,*,auto,auto">
+                    <Button Grid.Column="0" 
+                            Content="←" 
+                            Command="{Binding GoToHomeCommand}" 
+                            Classes="TextButton" 
+                            Foreground="White" 
+                            FontSize="18" 
+                            Padding="0,0,10,0" 
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" 
+                               Text="Money Manager" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="White" 
+                               VerticalAlignment="Center"/>
+                    
+                    <!-- Add Account Button -->
+                    <Button Grid.Column="2" 
+                            Content="+ Account" 
+                            Command="{Binding OpenAddAccountDialogCommand}" 
+                            Classes="AccentButton" 
+                            Margin="0,0,8,0"
+                            FontSize="13"
+                            FontWeight="Bold"
+                            Padding="10,8"
+                            VerticalAlignment="Center"/>
+
+                    <!-- Add Transaction Button -->
+                    <Button Grid.Column="3" 
+                            Content="+ Tx" 
+                            Command="{Binding OpenAddTransactionDialogCommand}" 
+                            Classes="AccentButton" 
+                            FontSize="13"
+                            FontWeight="Bold"
+                            Padding="10,8"
+                            VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Search Bar -->
+            <Border Grid.Row="1" Padding="15,10,15,5">
+                <TextBox Text="{Binding FinanceSearchText, Mode=TwoWay}" 
+                         Classes="ModernTextBox" 
+                         Height="40" 
+                         FontSize="14"
+                         Watermark="Search transactions, memos, tags..." />
+            </Border>
+
+            <!-- Transactions List -->
+            <ScrollViewer Grid.Row="2" Padding="15,5">
+                <ItemsControl ItemsSource="{Binding FinanceTransactions}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource CardBackgroundBrush}" 
+                                    BorderBrush="{DynamicResource DividerBrush}" 
+                                    BorderThickness="1" 
+                                    CornerRadius="12" 
+                                    Margin="0,0,0,12" 
+                                    Padding="15">
+                                <Grid ColumnDefinitions="*,auto,auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="{Binding TransactionDate, StringFormat='{}{0:yyyy-MM-dd}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding Description}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                        
+                                        <!-- Splits (Mobile Condensed) -->
+                                        <ItemsControl ItemsSource="{Binding LedgerEntries}" Margin="0,4,0,0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="*,auto" Margin="0,2,0,2">
+                                                        <!-- Category or Account -->
+                                                        <TextBlock Grid.Column="0" 
+                                                                   Text="{Binding Category.Name}" 
+                                                                   FontSize="11" 
+                                                                   Foreground="#4CAF50" 
+                                                                   FontWeight="SemiBold"
+                                                                   IsVisible="{Binding Category}" />
+                                                        <TextBlock Grid.Column="0" 
+                                                                   Text="{Binding Account.Name}" 
+                                                                   FontSize="11" 
+                                                                   Foreground="{DynamicResource TextSecondaryBrush}" 
+                                                                   IsVisible="{Binding Account}" />
+                                                        
+                                                        <TextBlock Grid.Column="1" 
+                                                                   Text="{Binding Amount, StringFormat='{}{0:C}'}" 
+                                                                   FontSize="11" 
+                                                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+
+                                    <!-- Total Amount -->
+                                    <TextBlock Grid.Column="1" 
+                                               Text="{Binding TotalAmount, StringFormat='{}{0:C}'}" 
+                                               FontSize="16" 
+                                               FontWeight="Bold" 
+                                               Foreground="{DynamicResource TextPrimaryBrush}" 
+                                               VerticalAlignment="Center" 
+                                               Margin="12,0" />
+
+                                    <!-- Delete Button -->
+                                    <Button Grid.Column="2" 
+                                            Content="×" 
+                                            Command="{Binding $parent[UserControl].DataContext.DeleteTransactionCommand}" 
+                                            CommandParameter="{Binding}" 
+                                            Classes="TextButton" 
+                                            Foreground="{DynamicResource DangerBrush}" 
+                                            FontSize="18" 
+                                            VerticalAlignment="Center" 
+                                            Padding="6,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Export / CSV Footer Area -->
+            <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="15,10">
+                <Button Content="Export Transactions (CSV)" 
+                        Command="{Binding ExportFinanceCsvCommand}" 
+                        Classes="ModernButton" 
+                        Background="#757575"
+                        HorizontalAlignment="Stretch" 
+                        HorizontalContentAlignment="Center"
+                        Height="40" />
+            </Border>
+        </Grid>
+
+        <!-- ================= MOBILE ADD ACCOUNT MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsAddAccountDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Add New Account" FontSize="18" FontWeight="Bold" Foreground="#4CAF50"/>
+                    
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Account Name" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Text="{Binding NewAccountName, Mode=TwoWay}" Watermark="Checking, Credit Card..." Classes="ModernTextBox" FontSize="14"/>
+                    </StackPanel>
+
+                    <StackPanel Spacing="5">
+                        <TextBlock Text="Account Type" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding AccountTypesList}" SelectedIndex="{Binding NewAccountTypeIndex, Mode=TwoWay}" Height="35" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseAddAccountDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Save" Command="{Binding SaveAccountCommand}" Classes="ModernButton" Background="#4CAF50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= MOBILE ADD TRANSACTION MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsAddTransactionDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Add Transaction" FontSize="18" FontWeight="Bold" Foreground="#4CAF50"/>
+                    
+                    <Grid ColumnDefinitions="*,*">
+                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="Amount ($)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBox Text="{Binding NewTransactionAmount, Mode=TwoWay}" Classes="ModernTextBox" Height="35" FontSize="14"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                            <TextBlock Text="Description" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBox Text="{Binding NewTransactionDescription, Mode=TwoWay}" Classes="ModernTextBox" Height="35" FontSize="14"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Source Account" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding FinanceAccounts}" SelectedItem="{Binding NewTransactionAccount, Mode=TwoWay}" Height="35" HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Destination Category" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ComboBox ItemsSource="{Binding FinanceCategories}" SelectedItem="{Binding NewTransactionCategory, Mode=TwoWay}" Height="35" HorizontalAlignment="Stretch">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Spacing="3">
+                        <TextBlock Text="Memo" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBox Text="{Binding NewTransactionMemo, Mode=TwoWay}" Classes="ModernTextBox" Height="35" FontSize="14"/>
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseAddTransactionDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                        <Button Grid.Column="1" Content="Record" Command="{Binding SaveTransactionCommand}" Classes="ModernButton" Background="#4CAF50" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= MOBILE TASK MANAGEMENT SCREEN ================= -->
+        <Grid IsVisible="{Binding IsTaskScreenActive}" RowDefinitions="auto,auto,auto,auto,*,auto">
+            <!-- ================= HEADER ================= -->
+            <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,35,15,12">
+                <Grid ColumnDefinitions="auto,*,auto,auto">
+                    <Button Grid.Column="0" 
+                            Content="←" 
+                            Command="{Binding GoToHomeCommand}" 
+                            Classes="TextButton" 
+                            Foreground="White" 
+                            FontSize="18" 
+                            Padding="0,0,10,0" 
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="Todo Studio" 
+                               FontSize="20" 
+                               FontWeight="Bold" 
+                               Foreground="White" 
+                               VerticalAlignment="Center"/>
                 
                 <!-- Add Category Button -->
                 <Button Grid.Column="1" 
@@ -603,4 +889,5 @@
             </Border>
         </Grid>
     </Grid>
+    </Panel>
 </UserControl>

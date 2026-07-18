@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Models;
 using TodoApp.Services;
+using TodoApp.Data;
 
 namespace TodoApp.ViewModels
 {
@@ -17,6 +18,187 @@ namespace TodoApp.ViewModels
         private readonly IPdfReportService _pdfReportService;
         private readonly IExcelReportService _excelReportService;
         private readonly IStorageService _storageService;
+
+        // Application Navigation State
+        private string _currentScreen = "Home"; // "Home", "TaskManagement", "MoneyManager"
+        public string CurrentScreen
+        {
+            get => _currentScreen;
+            set
+            {
+                if (SetProperty(ref _currentScreen, value))
+                {
+                    OnPropertyChanged(nameof(IsHomeScreenActive));
+                    OnPropertyChanged(nameof(IsTaskScreenActive));
+                    OnPropertyChanged(nameof(IsMoneyScreenActive));
+                }
+            }
+        }
+
+        public bool IsHomeScreenActive => CurrentScreen == "Home";
+        public bool IsTaskScreenActive => CurrentScreen == "TaskManagement";
+        public bool IsMoneyScreenActive => CurrentScreen == "MoneyManager";
+
+        private readonly IFinanceService _financeService = new FinanceService();
+        private bool _isLoadingFinanceData;
+
+        // Finance Collections
+        public ObservableCollection<FinanceAccount> FinanceAccounts { get; } = new ObservableCollection<FinanceAccount>();
+        public ObservableCollection<FinanceCategory> FinanceCategories { get; } = new ObservableCollection<FinanceCategory>();
+        public ObservableCollection<FinanceTransaction> FinanceTransactions { get; } = new ObservableCollection<FinanceTransaction>();
+        public Dictionary<Guid, decimal> AccountBalances { get; } = new Dictionary<Guid, decimal>();
+
+        // Finance View Selection & Navigation
+        private FinanceAccount? _selectedFinanceAccount;
+        public FinanceAccount? SelectedFinanceAccount
+        {
+            get => _selectedFinanceAccount;
+            set
+            {
+                if (SetProperty(ref _selectedFinanceAccount, value))
+                {
+                    if (value != null)
+                    {
+                        IsAllTransactionsViewActive = false;
+                    }
+                    _ = LoadFinanceDataAsync(reloadAccounts: false);
+                }
+            }
+        }
+
+        private bool _isAllTransactionsViewActive = true;
+        public bool IsAllTransactionsViewActive
+        {
+            get => _isAllTransactionsViewActive;
+            set
+            {
+                if (SetProperty(ref _isAllTransactionsViewActive, value))
+                {
+                    if (value)
+                    {
+                        _selectedFinanceAccount = null;
+                        OnPropertyChanged(nameof(SelectedFinanceAccount));
+                    }
+                    _ = LoadFinanceDataAsync(reloadAccounts: false);
+                }
+            }
+        }
+
+        public string FinanceViewTitle
+        {
+            get
+            {
+                if (IsAllTransactionsViewActive) return "All Transactions";
+                if (SelectedFinanceAccount != null) return $"{SelectedFinanceAccount.Name} ({SelectedFinanceAccount.CurrencyCode})";
+                return "Money Manager";
+            }
+        }
+
+        // Add Account Dialog state
+        private bool _isAddAccountDialogVisible;
+        public bool IsAddAccountDialogVisible
+        {
+            get => _isAddAccountDialogVisible;
+            set => SetProperty(ref _isAddAccountDialogVisible, value);
+        }
+
+        private string _newAccountName = string.Empty;
+        public string NewAccountName
+        {
+            get => _newAccountName;
+            set => SetProperty(ref _newAccountName, value);
+        }
+
+        private FinanceAccountType _newAccountType = FinanceAccountType.CASH;
+        public FinanceAccountType NewAccountType
+        {
+            get => _newAccountType;
+            set
+            {
+                if (SetProperty(ref _newAccountType, value))
+                {
+                    OnPropertyChanged(nameof(NewAccountTypeIndex));
+                }
+            }
+        }
+
+        public int NewAccountTypeIndex
+        {
+            get => (int)NewAccountType;
+            set => NewAccountType = (FinanceAccountType)value;
+        }
+
+        public List<FinanceAccountType> AccountTypesList { get; } = Enum.GetValues(typeof(FinanceAccountType)).Cast<FinanceAccountType>().ToList();
+
+        // Add Transaction Dialog state
+        private bool _isAddTransactionDialogVisible;
+        public bool IsAddTransactionDialogVisible
+        {
+            get => _isAddTransactionDialogVisible;
+            set => SetProperty(ref _isAddTransactionDialogVisible, value);
+        }
+
+        private DateTimeOffset _newTransactionDate = DateTimeOffset.Now;
+        public DateTimeOffset NewTransactionDate
+        {
+            get => _newTransactionDate;
+            set => SetProperty(ref _newTransactionDate, value);
+        }
+
+        private string _newTransactionDescription = string.Empty;
+        public string NewTransactionDescription
+        {
+            get => _newTransactionDescription;
+            set => SetProperty(ref _newTransactionDescription, value);
+        }
+
+        private decimal _newTransactionAmount;
+        public decimal NewTransactionAmount
+        {
+            get => _newTransactionAmount;
+            set => SetProperty(ref _newTransactionAmount, value);
+        }
+
+        private FinanceAccount? _newTransactionAccount;
+        public FinanceAccount? NewTransactionAccount
+        {
+            get => _newTransactionAccount;
+            set => SetProperty(ref _newTransactionAccount, value);
+        }
+
+        private FinanceCategory? _newTransactionCategory;
+        public FinanceCategory? NewTransactionCategory
+        {
+            get => _newTransactionCategory;
+            set => SetProperty(ref _newTransactionCategory, value);
+        }
+
+        private string _newTransactionMemo = string.Empty;
+        public string NewTransactionMemo
+        {
+            get => _newTransactionMemo;
+            set => SetProperty(ref _newTransactionMemo, value);
+        }
+
+        private string _newTransactionTags = string.Empty;
+        public string NewTransactionTags
+        {
+            get => _newTransactionTags;
+            set => SetProperty(ref _newTransactionTags, value);
+        }
+
+        private string _financeSearchText = string.Empty;
+        public string FinanceSearchText
+        {
+            get => _financeSearchText;
+            set
+            {
+                if (SetProperty(ref _financeSearchText, value))
+                {
+                    _ = LoadFinanceDataAsync(reloadAccounts: false);
+                }
+            }
+        }
 
         // Collections
         public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
@@ -333,6 +515,22 @@ namespace TodoApp.ViewModels
         public ICommand CancelConfirmCommand { get; }
         public ICommand CloseAlertDialogCommand { get; }
 
+        // Navigation Commands
+        public ICommand GoToTaskManagementCommand { get; }
+        public ICommand GoToMoneyManagerCommand { get; }
+        public ICommand GoToHomeCommand { get; }
+
+        // Finance Commands
+        public ICommand OpenAddAccountDialogCommand { get; }
+        public ICommand CloseAddAccountDialogCommand { get; }
+        public ICommand SaveAccountCommand { get; }
+        public ICommand DeleteAccountCommand { get; }
+        public ICommand OpenAddTransactionDialogCommand { get; }
+        public ICommand CloseAddTransactionDialogCommand { get; }
+        public ICommand SaveTransactionCommand { get; }
+        public ICommand DeleteTransactionCommand { get; }
+        public ICommand ExportFinanceCsvCommand { get; }
+
         // Constructor
         public MainViewModel(ITodoService todoService, IPdfReportService pdfReportService, IExcelReportService excelReportService, IStorageService storageService)
         {
@@ -344,6 +542,32 @@ namespace TodoApp.ViewModels
             // Initialize commands
             InitializeCommand = new AsyncRelayCommand(InitializeAsync);
             RefreshCommand = new AsyncRelayCommand(RefreshAsync);
+
+            // Initialize navigation commands
+            GoToTaskManagementCommand = new RelayCommand(() => CurrentScreen = "TaskManagement");
+            GoToMoneyManagerCommand = new RelayCommand(() => { CurrentScreen = "MoneyManager"; _ = LoadFinanceDataAsync(reloadAccounts: true); });
+            GoToHomeCommand = new RelayCommand(() => CurrentScreen = "Home");
+
+            // Initialize finance commands
+            OpenAddAccountDialogCommand = new RelayCommand(() => { NewAccountName = string.Empty; IsAddAccountDialogVisible = true; });
+            CloseAddAccountDialogCommand = new RelayCommand(() => IsAddAccountDialogVisible = false);
+            SaveAccountCommand = new AsyncRelayCommand(SaveAccountAsync);
+            DeleteAccountCommand = new AsyncRelayCommand<FinanceAccount>(DeleteAccountAsync);
+
+            OpenAddTransactionDialogCommand = new RelayCommand(() => {
+                NewTransactionDescription = string.Empty;
+                NewTransactionAmount = 0;
+                NewTransactionMemo = string.Empty;
+                NewTransactionTags = string.Empty;
+                NewTransactionDate = DateTimeOffset.Now;
+                NewTransactionAccount = FinanceAccounts.FirstOrDefault();
+                NewTransactionCategory = FinanceCategories.FirstOrDefault();
+                IsAddTransactionDialogVisible = true;
+            });
+            CloseAddTransactionDialogCommand = new RelayCommand(() => IsAddTransactionDialogVisible = false);
+            SaveTransactionCommand = new AsyncRelayCommand(SaveTransactionAsync);
+            DeleteTransactionCommand = new AsyncRelayCommand<FinanceTransaction>(DeleteTransactionAsync);
+            ExportFinanceCsvCommand = new AsyncRelayCommand(ExportFinanceCsvAsync);
             SelectAllTasksCommand = new RelayCommand(() => IsAllTasksViewActive = true);
             SelectFinishedTasksCommand = new RelayCommand(() => IsFinishedViewActive = true);
 
@@ -405,6 +629,7 @@ namespace TodoApp.ViewModels
             await LoadCategoriesAsync();
             await LoadCompletedSubCategoriesAsync();
             await LoadTasksAsync();
+            await LoadFinanceDataAsync(reloadAccounts: true);
         }
 
         private async Task RefreshAsync()
@@ -412,6 +637,309 @@ namespace TodoApp.ViewModels
             await LoadCategoriesAsync();
             await LoadCompletedSubCategoriesAsync();
             await LoadTasksAsync();
+            await LoadFinanceDataAsync(reloadAccounts: true);
+        }
+
+        // ================= FINANCE MODULE ACTIONS =================
+
+        public async Task LoadFinanceDataAsync(bool reloadAccounts = false)
+        {
+            if (_isLoadingFinanceData) return;
+            _isLoadingFinanceData = true;
+
+            try
+            {
+                using var db = new TodoDbContext();
+                if (!await db.FinanceCategories.AnyAsync())
+                {
+                    db.FinanceCategories.AddRange(
+                        new FinanceCategory { Name = "Salary", Type = FinanceCategoryType.INCOME },
+                        new FinanceCategory { Name = "Investments", Type = FinanceCategoryType.INCOME },
+                        new FinanceCategory { Name = "Groceries", Type = FinanceCategoryType.EXPENSE },
+                        new FinanceCategory { Name = "Dining Out", Type = FinanceCategoryType.EXPENSE },
+                        new FinanceCategory { Name = "Rent / Mortgage", Type = FinanceCategoryType.EXPENSE },
+                        new FinanceCategory { Name = "Utilities", Type = FinanceCategoryType.EXPENSE },
+                        new FinanceCategory { Name = "Entertainment", Type = FinanceCategoryType.EXPENSE },
+                        new FinanceCategory { Name = "Transport", Type = FinanceCategoryType.EXPENSE }
+                    );
+                    await db.SaveChangesAsync();
+                }
+
+                if (!await db.FinanceAccounts.AnyAsync())
+                {
+                    db.FinanceAccounts.Add(new FinanceAccount { Name = "Checking Account", Type = FinanceAccountType.CASH, CurrencyCode = "USD" });
+                    await db.SaveChangesAsync();
+                }
+
+                var accounts = await _financeService.GetAllAccountsAsync();
+                FinanceAccounts.Clear();
+                AccountBalances.Clear();
+                foreach (var account in accounts)
+                {
+                    var bal = await _financeService.GetAccountBalanceAsync(account.Id);
+                    AccountBalances[account.Id] = bal;
+                    FinanceAccounts.Add(account);
+                }
+                OnPropertyChanged(nameof(AccountBalances));
+
+                var categories = await _financeService.GetAllCategoriesFlatAsync();
+                FinanceCategories.Clear();
+                foreach (var cat in categories)
+                {
+                    FinanceCategories.Add(cat);
+                }
+
+                var txs = await _financeService.GetTransactionsAsync(
+                    accountId: SelectedFinanceAccount?.Id,
+                    startDate: null,
+                    endDate: null
+                );
+
+                if (!string.IsNullOrWhiteSpace(FinanceSearchText))
+                {
+                    string search = FinanceSearchText.ToLower();
+                    txs = txs.Where(t => 
+                        t.Description.ToLower().Contains(search) || 
+                        t.LedgerEntries.Any(le => 
+                            le.Memo.ToLower().Contains(search) || 
+                            (le.Category != null && le.Category.Name.ToLower().Contains(search)) ||
+                            le.Tags.Any(tg => tg.Name.ToLower().Contains(search))
+                        )
+                    ).ToList();
+                }
+
+                FinanceTransactions.Clear();
+                foreach (var tx in txs)
+                {
+                    FinanceTransactions.Add(tx);
+                }
+
+                OnPropertyChanged(nameof(FinanceViewTitle));
+            }
+            catch (Exception ex)
+            {
+                AlertMessage = $"Error loading finance data: {ex.Message}";
+                IsAlertDialogVisible = true;
+            }
+            finally
+            {
+                _isLoadingFinanceData = false;
+            }
+        }
+
+        private async Task SaveAccountAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewAccountName))
+            {
+                AlertMessage = "Account name cannot be empty.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            try
+            {
+                await _financeService.CreateAccountAsync(NewAccountName, NewAccountType);
+                IsAddAccountDialogVisible = false;
+                await LoadFinanceDataAsync(reloadAccounts: true);
+            }
+            catch (Exception ex)
+            {
+                AlertMessage = $"Error creating account: {ex.Message}";
+                IsAlertDialogVisible = true;
+            }
+        }
+
+        private async Task DeleteAccountAsync(FinanceAccount? account)
+        {
+            if (account == null) return;
+
+            using var db = new TodoDbContext();
+            bool hasTransactions = await db.LedgerEntries.AnyAsync(le => le.AccountId == account.Id);
+
+            if (hasTransactions)
+            {
+                ConfirmTitle = "Archive Account";
+                ConfirmMessage = $"This account '{account.Name}' has historical transactions and cannot be deleted permanently without breaking your ledger history.\n\nWould you like to archive/deactivate it instead? It will be hidden from your active list.";
+                _confirmCallback = async () =>
+                {
+                    try
+                    {
+                        var acc = await db.FinanceAccounts.FindAsync(account.Id);
+                        if (acc != null)
+                        {
+                            acc.IsActive = false;
+                            await db.SaveChangesAsync();
+                        }
+                        await LoadFinanceDataAsync(reloadAccounts: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        AlertMessage = $"Error deactivating account: {ex.Message}";
+                        IsAlertDialogVisible = true;
+                    }
+                };
+                IsConfirmDialogVisible = true;
+            }
+            else
+            {
+                ConfirmTitle = "Delete Account";
+                ConfirmMessage = $"Are you sure you want to permanently delete the empty account '{account.Name}'?";
+                _confirmCallback = async () =>
+                {
+                    try
+                    {
+                        var acc = await db.FinanceAccounts.FindAsync(account.Id);
+                        if (acc != null)
+                        {
+                            db.FinanceAccounts.Remove(acc);
+                            await db.SaveChangesAsync();
+                        }
+                        await LoadFinanceDataAsync(reloadAccounts: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        AlertMessage = $"Error deleting account: {ex.Message}";
+                        IsAlertDialogVisible = true;
+                    }
+                };
+                IsConfirmDialogVisible = true;
+            }
+        }
+
+        private async Task SaveTransactionAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewTransactionDescription))
+            {
+                AlertMessage = "Transaction description cannot be empty.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            if (NewTransactionAmount <= 0)
+            {
+                AlertMessage = "Transaction amount must be greater than zero.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            if (NewTransactionAccount == null)
+            {
+                AlertMessage = "Please select a source account.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            if (NewTransactionCategory == null)
+            {
+                AlertMessage = "Please select a destination category.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            try
+            {
+                var entries = new List<LedgerEntryDto>
+                {
+                    new LedgerEntryDto
+                    {
+                        AccountId = NewTransactionAccount.Id,
+                        Amount = -NewTransactionAmount,
+                        Memo = NewTransactionMemo,
+                        TagNames = NewTransactionTags.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                    },
+                    new LedgerEntryDto
+                    {
+                        CategoryId = NewTransactionCategory.Id,
+                        Amount = NewTransactionAmount,
+                        Memo = NewTransactionMemo,
+                        TagNames = NewTransactionTags.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList()
+                    }
+                };
+
+                await _financeService.RecordTransactionAsync(
+                    NewTransactionDate.DateTime,
+                    NewTransactionDescription,
+                    NewTransactionAmount,
+                    NewTransactionAccount.CurrencyCode,
+                    entries
+                );
+
+                IsAddTransactionDialogVisible = false;
+                await LoadFinanceDataAsync(reloadAccounts: true);
+            }
+            catch (Exception ex)
+            {
+                AlertMessage = $"Error saving transaction: {ex.Message}";
+                IsAlertDialogVisible = true;
+            }
+        }
+
+        private async Task DeleteTransactionAsync(FinanceTransaction? transaction)
+        {
+            if (transaction == null) return;
+            ConfirmTitle = "Delete Transaction";
+            ConfirmMessage = $"Are you sure you want to delete this transaction '{transaction.Description}'? This will reverse all balanced ledger splits.";
+            _confirmCallback = async () =>
+            {
+                try
+                {
+                    using var db = new TodoDbContext();
+                    var tx = await db.FinanceTransactions.FindAsync(transaction.Id);
+                    if (tx != null)
+                    {
+                        db.FinanceTransactions.Remove(tx);
+                        await db.SaveChangesAsync();
+                    }
+                    await LoadFinanceDataAsync(reloadAccounts: true);
+                }
+                catch (Exception ex)
+                {
+                    AlertMessage = $"Error deleting transaction: {ex.Message}";
+                    IsAlertDialogVisible = true;
+                }
+            };
+            IsConfirmDialogVisible = true;
+        }
+
+        private async Task ExportFinanceCsvAsync()
+        {
+            var txs = await _financeService.GetTransactionsAsync();
+            if (!txs.Any())
+            {
+                AlertMessage = "No transactions available to export.";
+                IsAlertDialogVisible = true;
+                return;
+            }
+
+            var path = await _storageService.SaveFileDialogAsync("transactions_export.csv", ".csv", "CSV Files");
+            if (string.IsNullOrEmpty(path)) return;
+
+            try
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine("TransactionID,Date,Description,TotalAmount,Currency,SplitID,Account,Category,SplitAmount,Memo,Tags");
+
+                foreach (var tx in txs)
+                {
+                    foreach (var le in tx.LedgerEntries)
+                    {
+                        var accountName = le.Account != null ? le.Account.Name : "";
+                        var categoryName = le.Category != null ? le.Category.Name : "";
+                        var tags = string.Join(" ", le.Tags.Select(t => t.Name));
+                        
+                        sb.AppendLine($"\"{tx.Id}\",\"{tx.TransactionDate:yyyy-MM-dd}\",\"{tx.Description.Replace("\"", "\"\"")}\",{tx.TotalAmount},\"{tx.BaseCurrency}\",\"{le.Id}\",\"{accountName.Replace("\"", "\"\"")}\",\"{categoryName.Replace("\"", "\"\"")}\",{le.Amount},\"{le.Memo.Replace("\"", "\"\"")}\",\"{tags.Replace("\"", "\"\"")}\"");
+                    }
+                }
+
+                await System.IO.File.WriteAllTextAsync(path, sb.ToString());
+                AlertMessage = $"Successfully exported transactions to {System.IO.Path.GetFileName(path)}!";
+                IsAlertDialogVisible = true;
+            }
+            catch (Exception ex)
+            {
+                AlertMessage = $"Error exporting CSV: {ex.Message}";
+                IsAlertDialogVisible = true;
+            }
         }
 
         private async Task LoadCategoriesAsync()
