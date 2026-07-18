@@ -80,6 +80,22 @@ The project relies on these core NuGet dependencies:
    dotnet run
    ```
 
+### Troubleshooting Linux Restore Issues (Arch / CachyOS / Manjaro)
+If you are on Arch Linux or an Arch-based distribution (like CachyOS or Manjaro) using the system package-manager's .NET SDK, you may encounter the following error during `dotnet restore`:
+```text
+error NU1101: Unable to find package Microsoft.NETCore.App.Host.arch-x64. No packages exist with this id in source(s): nuget.org
+```
+This is because Arch-maintained SDKs default to a custom `arch-x64` Runtime Identifier (RID), which does not exist on NuGet.org. 
+
+**How it's resolved:**
+The project's `Todo.csproj` includes a built-in detection and fallback to automatically map `arch-x64` (and `arch-arm64`) to `linux-x64` (and `linux-arm64`) so that `dotnet restore` just works out of the box. 
+
+If you still encounter issues or are writing custom build scripts, you can manually override the runtime during restore:
+```bash
+dotnet restore -p:RuntimeIdentifier=linux-x64
+```
+Alternatively, you can switch to the official binary packages from Microsoft (e.g., install `dotnet-sdk-bin` from the AUR/CachyOS repos) to avoid RID mismatch issues entirely.
+
 ---
 
 ## Publishing Standalone Single-File Executables (Desktop)
@@ -134,6 +150,7 @@ This repository includes a dedicated, touch-optimized **Android mobile project**
    ```bash
    dotnet workload install android
    ```
+   *(Note: If your .NET SDK is installed system-wide, e.g. on Linux or macOS, you will need to run the install command with elevated privileges: `sudo dotnet workload install android`)*
 
 2. **Build the Android APK (Debug Mode):**
    ```bash

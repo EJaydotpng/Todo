@@ -6,6 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Fix for Arch/CachyOS SDK using 'arch-x64' RID which does not exist on NuGet -->
+    <RuntimeIdentifier Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'arch-x64'">linux-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(NETCoreSdkRuntimeIdentifier)' == 'arch-arm64'">linux-arm64</RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Exclude mobile platform project subdirectory from desktop compilation -->
