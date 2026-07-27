@@ -21,6 +21,9 @@ namespace TodoApp.ViewModels
         // Collections
         public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
         public ObservableCollection<TaskItem> Tasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> TodoTasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> InProgressTasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> DoneTasks { get; } = new ObservableCollection<TaskItem>();
 
         // Navigation & Selection
         private Category? _selectedCategory;
@@ -118,7 +121,15 @@ namespace TodoApp.ViewModels
         public TaskItem? SelectedTask
         {
             get => _selectedTask;
-            set => SetProperty(ref _selectedTask, value);
+            set
+            {
+                // If we are currently completing a task (entering status), reject any selection to prevent overlapping overlays!
+                if (IsCompleteTaskDialogVisible && value != null)
+                {
+                    return;
+                }
+                SetProperty(ref _selectedTask, value);
+            }
         }
 
         // Form Fields (Inline Adding)
@@ -327,6 +338,8 @@ namespace TodoApp.ViewModels
         public ICommand CloseDataModalCommand { get; }
         public ICommand OpenReportModalCommand { get; }
         public ICommand CloseReportModalCommand { get; }
+        public ICommand MoveTaskForwardCommand { get; }
+        public ICommand MoveTaskBackwardCommand { get; }
 
         // Confirm Overlay Dialog Commands
         public ICommand ConfirmCommand { get; }
@@ -372,6 +385,8 @@ namespace TodoApp.ViewModels
             GenerateExcelReportCommand = new AsyncRelayCommand(GenerateExcelReportAsync);
             ExportDatabaseCommand = new AsyncRelayCommand(ExportDatabaseAsync);
             ImportDatabaseCommand = new AsyncRelayCommand(ImportDatabaseAsync);
+            MoveTaskForwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskForwardAsync);
+            MoveTaskBackwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskBackwardAsync);
 
             // Overlay controls commands
             ConfirmCommand = new AsyncRelayCommand(async () =>
@@ -427,11 +442,16 @@ namespace TodoApp.ViewModels
         public async Task LoadTasksAsync()
         {
             Tasks.Clear();
+            TodoTasks.Clear();
+            InProgressTasks.Clear();
+            DoneTasks.Clear();
             SelectedTask = null;
+
+            List<TaskItem> allRootTasks = new List<TaskItem>();
 
             if (IsFinishedViewActive)
             {
-                // Load all finished tasks
+                // In Completed View, we only show finished/completed tasks (Status == "Done")
                 var finishedTasks = await _todoService.GetRootTasksAsync(isFinished: true);
 
                 // Filter by subcategory if a specific one is selected (case-insensitive)
@@ -453,52 +473,60 @@ namespace TodoApp.ViewModels
                     ).ToList();
                 }
 
-                foreach (var task in finishedTasks)
-                {
-                    Tasks.Add(task);
-                }
+                allRootTasks.AddRange(finishedTasks);
             }
             else if (IsAllTasksViewActive)
             {
-                // Load all unfinished tasks
+                // In Active Tasks View, we show To Do and In Progress tasks
                 var unfinishedTasks = await _todoService.GetRootTasksAsync(isFinished: false);
-
-                // Filter by search query (case-insensitive contains)
-                if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    var query = SearchText.Trim();
-                    unfinishedTasks = unfinishedTasks.Where(t => 
-                        t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
-                        (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                        (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    ).ToList();
-                }
-
-                foreach (var task in unfinishedTasks)
-                {
-                    Tasks.Add(task);
-                }
+                var finishedTasks = await _todoService.GetRootTasksAsync(isFinished: true); // include finished so they show up on the Board!
+                allRootTasks.AddRange(unfinishedTasks);
+                allRootTasks.AddRange(finishedTasks);
             }
             else if (SelectedCategory != null)
             {
-                // Load tasks by selected category
-                var catTasks = await _todoService.GetRootTasksByCategoryAsync(SelectedCategory.Id, isFinished: false);
+                // In Category View, we show all tasks for this category
+                var catUnfinished = await _todoService.GetRootTasksByCategoryAsync(SelectedCategory.Id, isFinished: false);
+                var catFinished = await _todoService.GetRootTasksByCategoryAsync(SelectedCategory.Id, isFinished: true);
+                allRootTasks.AddRange(catUnfinished);
+                allRootTasks.AddRange(catFinished);
+            }
 
-                // Filter by search query (case-insensitive contains)
-                if (!string.IsNullOrWhiteSpace(SearchText))
+            // Filter by search query (case-insensitive contains) if applicable
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                var query = SearchText.Trim();
+                allRootTasks = allRootTasks.Where(t => 
+                    t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
+                    (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
+
+            // Distribute tasks to the 3 columns based on their Status property
+            foreach (var task in allRootTasks)
+            {
+                // Make sure Status is set (auto-migrate if empty)
+                if (string.IsNullOrEmpty(task.Status))
                 {
-                    var query = SearchText.Trim();
-                    catTasks = catTasks.Where(t => 
-                        t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
-                        (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                        (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    ).ToList();
+                    task.Status = task.IsFinished ? "Done" : "To Do";
                 }
 
-                foreach (var task in catTasks)
+                if (task.Status == "Done")
                 {
-                    Tasks.Add(task);
+                    DoneTasks.Add(task);
                 }
+                else if (task.Status == "In Progress")
+                {
+                    InProgressTasks.Add(task);
+                }
+                else
+                {
+                    TodoTasks.Add(task);
+                }
+
+                // Also populate the flat legacy collection for other components if needed
+                Tasks.Add(task);
             }
         }
 
@@ -629,6 +657,9 @@ namespace TodoApp.ViewModels
 
             if (!task.IsFinished)
             {
+                // Unselect task so the details floating window doesn't pop up!
+                SelectedTask = null;
+
                 // We are completing the task! Open the custom completion overlay modal
                 TaskBeingCompleted = task;
                 CompleteTaskSubCategory = string.Empty;
@@ -640,6 +671,7 @@ namespace TodoApp.ViewModels
                 task.IsFinished = false;
                 task.DateFinished = null;
                 task.SubCategory = null; // Clear subcategory on reactivation
+                task.Status = "To Do"; // Move back to To Do
 
                 await _todoService.UpdateTaskAsync(task);
                 await LoadCompletedSubCategoriesAsync();
@@ -654,6 +686,7 @@ namespace TodoApp.ViewModels
             TaskBeingCompleted.IsFinished = true;
             TaskBeingCompleted.DateFinished = DateTime.Now;
             TaskBeingCompleted.SubCategory = string.IsNullOrWhiteSpace(CompleteTaskSubCategory) ? null : CompleteTaskSubCategory;
+            TaskBeingCompleted.Status = "Done"; // Mark status as Done so it leaves In Progress!
 
             // Optional polish: If main task is completed, mark all its subtasks as completed
             if (TaskBeingCompleted.Subtasks != null)
@@ -902,6 +935,50 @@ namespace TodoApp.ViewModels
                 }
             };
             IsConfirmDialogVisible = true;
+        }
+
+        // Move task to next state (To Do -> In Progress -> Done)
+        private async Task MoveTaskForwardAsync(TaskItem? task)
+        {
+            if (task == null) return;
+
+            if (task.Status == "To Do" || string.IsNullOrEmpty(task.Status))
+            {
+                task.Status = "In Progress";
+                task.IsFinished = false;
+                task.DateFinished = null;
+                await _todoService.UpdateTaskAsync(task);
+                await LoadCompletedSubCategoriesAsync();
+                await LoadTasksAsync();
+            }
+            else if (task.Status == "In Progress")
+            {
+                // Moving from In Progress to Done: open the completion dialog!
+                await ToggleTaskStatusAsync(task);
+            }
+        }
+
+        // Move task to previous state (Done -> In Progress -> To Do)
+        private async Task MoveTaskBackwardAsync(TaskItem? task)
+        {
+            if (task == null) return;
+
+            if (task.Status == "Done")
+            {
+                task.Status = "In Progress";
+                task.IsFinished = false;
+                task.DateFinished = null;
+            }
+            else if (task.Status == "In Progress")
+            {
+                task.Status = "To Do";
+                task.IsFinished = false;
+                task.DateFinished = null;
+            }
+
+            await _todoService.UpdateTaskAsync(task);
+            await LoadCompletedSubCategoriesAsync();
+            await LoadTasksAsync();
         }
     }
 }

@@ -16,6 +16,7 @@ namespace TodoApp.Models
         public DateTime? DateFinished { get; set; }
         public bool IsFinished { get; set; }
         public string? SubCategory { get; set; }
+        public string Status { get; set; } = "To Do";
 
         // Self-referencing relationship for subtasks
         public int? ParentTaskId { get; set; }

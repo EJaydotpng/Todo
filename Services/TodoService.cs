@@ -30,6 +30,19 @@ namespace TodoApp.Services
             {
                 // Ignored (column already exists or DB was already created with it)
             }
+
+            // Safe SQLite migration to add Status column to TaskItems if it doesn't exist
+            try
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE TaskItems ADD COLUMN Status TEXT DEFAULT 'To Do';");
+                
+                // Backfill: If a task was already finished under the old system, make sure its status is 'Done'
+                await _dbContext.Database.ExecuteSqlRawAsync("UPDATE TaskItems SET Status = 'Done' WHERE IsFinished = 1 AND (Status IS NULL OR Status = 'To Do');");
+            }
+            catch
+            {
+                // Ignored (column already exists or DB was already created with it)
+            }
         }
 
         // Category CRUD
