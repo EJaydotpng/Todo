@@ -297,6 +297,24 @@ namespace TodoApp.ViewModels
             set => SetProperty(ref _alertMessage, value);
         }
 
+        private bool _isDarkMode;
+        public bool IsDarkMode
+        {
+            get => _isDarkMode;
+            set
+            {
+                if (SetProperty(ref _isDarkMode, value))
+                {
+                    if (Avalonia.Application.Current != null)
+                    {
+                        Avalonia.Application.Current.RequestedThemeVariant = value 
+                            ? Avalonia.Styling.ThemeVariant.Dark 
+                            : Avalonia.Styling.ThemeVariant.Light;
+                    }
+                }
+            }
+        }
+
         // Commands
         public ICommand InitializeCommand { get; }
         public ICommand RefreshCommand { get; }

@@ -4,35 +4,59 @@
              RequestedThemeVariant="Light">
 
     <Application.Resources>
-        <!-- Color Palette -->
-        <SolidColorBrush x:Key="PrimaryBrush" Color="#3F51B5" />
-        <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#303F9F" />
-        <SolidColorBrush x:Key="PrimaryLightBrush" Color="#E8EAF6" />
-        <SolidColorBrush x:Key="AccentBrush" Color="#FF5722" />
-        <SolidColorBrush x:Key="BackgroundBrush" Color="#F5F7FA" />
-        <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />
-        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#212121" />
-        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#757575" />
-        <SolidColorBrush x:Key="DividerBrush" Color="#E0E0E0" />
-        <SolidColorBrush x:Key="SuccessBrush" Color="#4CAF50" />
-        <SolidColorBrush x:Key="WarningBrush" Color="#FF9800" />
-        <SolidColorBrush x:Key="DangerBrush" Color="#F44336" />
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- Light Mode Color Palette -->
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#3B82F6" />        <!-- Bright Blue -->
+                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#2563EB" />    <!-- Hover Blue -->
+                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#EFF6FF" />   <!-- Soft Blue -->
+                    <SolidColorBrush x:Key="AccentBrush" Color="#3B82F6" />         <!-- Coordinated Blue -->
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#F9FAFB" />     <!-- Ultra-light Grey Canvas -->
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" /> <!-- Pure White -->
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#111827" />    <!-- Slate 900 -->
+                    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#6B7280" />  <!-- Gray 500 -->
+                    <SolidColorBrush x:Key="DividerBrush" Color="#E5E7EB" />        <!-- Light Gray border -->
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#10B981" />        <!-- Emerald Green -->
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />        <!-- Amber Yellow -->
+                    <SolidColorBrush x:Key="DangerBrush" Color="#EF4444" />         <!-- Rose Red -->
+                </ResourceDictionary>
+
+                <!-- Dark Mode Color Palette -->
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="PrimaryBrush" Color="#3B82F6" />        <!-- Bright Blue -->
+                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#60A5FA" />    <!-- Lighter Blue for Dark Mode -->
+                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#1E293B" />   <!-- Soft Dark Blue / Slate 800 -->
+                    <SolidColorBrush x:Key="AccentBrush" Color="#60A5FA" />
+                    <SolidColorBrush x:Key="BackgroundBrush" Color="#0F172A" />     <!-- Slate 900 Canvas -->
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1E293B" /> <!-- Slate 800 Card -->
+                    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#F9FAFB" />    <!-- Bright White Text -->
+                    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#9CA3AF" />  <!-- Soft Gray Text -->
+                    <SolidColorBrush x:Key="DividerBrush" Color="#334155" />        <!-- Dark Slate Border -->
+                    <SolidColorBrush x:Key="SuccessBrush" Color="#34D399" />        <!-- Bright Green -->
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FBBF24" />        <!-- Amber Yellow -->
+                    <SolidColorBrush x:Key="DangerBrush" Color="#F87171" />         <!-- Soft Red -->
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
         <FluentTheme />
 
-        <!-- Base Button Style -->
+        <!-- Modern Pill Button Style -->
         <Style Selector="Button.ModernButton">
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Padding" Value="16,10" />
             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="20" /> <!-- Rounded Pill! -->
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.ModernButton:pointerover">
             <Setter Property="Background" Value="{DynamicResource PrimaryDarkBrush}" />
@@ -47,15 +71,18 @@
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="16,8" />
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Padding" Value="16,10" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="20" /> <!-- Rounded Pill! -->
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.AccentButton:pointerover">
-            <Setter Property="Background" Value="#E64A19" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
         <!-- TextButton Style -->
@@ -63,12 +90,14 @@
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Padding" Value="8,5" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.TextButton:pointerover">
             <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
@@ -79,27 +108,29 @@
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="Padding" Value="16,10" />
             <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="20" /> <!-- Rounded Pill! -->
             <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.DangerButton:pointerover">
-            <Setter Property="Background" Value="#D32F2F" />
+            <Setter Property="Background" Value="#DC2626" />
         </Style>
 
         <!-- Modern TextBox Style -->
         <Style Selector="TextBox.ModernTextBox">
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="10,8" />
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
             <Setter Property="BorderThickness" Value="1.5" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="8" />
         </Style>
         <Style Selector="TextBox.ModernTextBox:pointerover">
             <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
@@ -113,12 +144,12 @@
         <Style Selector="TextBox.SearchTextBox">
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="Padding" Value="15,6,10,6" />
-            <Setter Property="Background" Value="White" />
+            <Setter Property="Padding" Value="15,8,10,8" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
             <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
             <Setter Property="BorderThickness" Value="1.5" />
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="CornerRadius" Value="20" /> <!-- Capsule! -->
             <Setter Property="Watermark" Value="Search tasks..." />
         </Style>
         <Style Selector="TextBox.SearchTextBox:pointerover">
@@ -129,16 +160,17 @@
             <Setter Property="BorderThickness" Value="1.5" />
         </Style>
 
-        <!-- Navigation Tab Button Style (Sidebar items) -->
+        <!-- Sidebar Navigation Items (Capsule Pill active selection) -->
         <Style Selector="RadioButton.SidebarButton">
             <Setter Property="FontFamily" Value="Segoe UI, Roboto, sans-serif" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Padding" Value="15,10" />
-            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="4,0,0,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="20" /> <!-- Fully rounded capsule! -->
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <ControlTemplate>
@@ -157,12 +189,11 @@
             </Setter>
         </Style>
         <Style Selector="RadioButton.SidebarButton:checked">
-            <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryDarkBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" /> <!-- Solid Blue selection! -->
+            <Setter Property="Foreground" Value="White" />                         <!-- White Text! -->
         </Style>
         <Style Selector="RadioButton.SidebarButton:pointerover">
-            <Setter Property="Background" Value="#F0F0F0" />
+            <Setter Property="Background" Value="{DynamicResource DividerBrush}" /> <!-- Responsive Hover! -->
         </Style>
     </Application.Styles>
 </Application>
