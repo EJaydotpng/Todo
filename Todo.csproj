@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="icon.ico" />
+    <AvaloniaResource Include="image.png" />
   </ItemGroup>
 
   <ItemGroup>
