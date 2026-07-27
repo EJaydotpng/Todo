@@ -38,6 +38,6 @@
 
   <!-- Android specific resources -->
   <ItemGroup>
-    <AndroidResource Include="res/**/*.xml" />
+    <AndroidResource Include="res\**\*" />
   </ItemGroup>
 </Project>

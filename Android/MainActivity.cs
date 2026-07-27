@@ -6,7 +6,8 @@ using Avalonia.Android;
 namespace Todo.Android
 {
     [Activity(
-        Label = "Todo Studio",
+        Label = "Focal Point",
+        Icon = "@drawable/icon",
         Theme = "@style/MyTheme.NoActionBar",
         LaunchMode = LaunchMode.SingleTop,
         ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
