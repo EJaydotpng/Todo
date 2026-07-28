@@ -81,6 +81,7 @@ namespace TodoApp.Services
         public async Task<List<TaskItem>> GetRootTasksAsync(bool isFinished)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .Where(t => t.ParentTaskId == null && t.IsFinished == isFinished)
@@ -91,6 +92,7 @@ namespace TodoApp.Services
         public async Task<List<TaskItem>> GetRootTasksByCategoryAsync(int? categoryId, bool isFinished)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .Where(t => t.ParentTaskId == null && t.CategoryId == categoryId && t.IsFinished == isFinished)
@@ -101,6 +103,7 @@ namespace TodoApp.Services
         public async Task<TaskItem?> GetTaskByIdAsync(int id)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .FirstOrDefaultAsync(t => t.Id == id);

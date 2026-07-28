@@ -297,6 +297,23 @@ namespace TodoApp.ViewModels
             set => SetProperty(ref _alertMessage, value);
         }
 
+        private bool _isSidebarCollapsed;
+        public bool IsSidebarCollapsed
+        {
+            get => _isSidebarCollapsed;
+            set
+            {
+                if (SetProperty(ref _isSidebarCollapsed, value))
+                {
+                    OnPropertyChanged(nameof(SidebarWidth));
+                    OnPropertyChanged(nameof(IsSidebarExpanded));
+                }
+            }
+        }
+
+        public double SidebarWidth => IsSidebarCollapsed ? 80 : 260;
+        public bool IsSidebarExpanded => !IsSidebarCollapsed;
+
         private bool _isDarkMode;
         public bool IsDarkMode
         {
@@ -358,6 +375,8 @@ namespace TodoApp.ViewModels
         public ICommand CloseReportModalCommand { get; }
         public ICommand MoveTaskForwardCommand { get; }
         public ICommand MoveTaskBackwardCommand { get; }
+        public ICommand ToggleSidebarCommand { get; }
+        public ICommand ToggleDarkModeCommand { get; }
 
         // Confirm Overlay Dialog Commands
         public ICommand ConfirmCommand { get; }
@@ -405,6 +424,8 @@ namespace TodoApp.ViewModels
             ImportDatabaseCommand = new AsyncRelayCommand(ImportDatabaseAsync);
             MoveTaskForwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskForwardAsync);
             MoveTaskBackwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskBackwardAsync);
+            ToggleSidebarCommand = new RelayCommand(() => IsSidebarCollapsed = !IsSidebarCollapsed);
+            ToggleDarkModeCommand = new RelayCommand(() => IsDarkMode = !IsDarkMode);
 
             // Overlay controls commands
             ConfirmCommand = new AsyncRelayCommand(async () =>
@@ -790,13 +811,21 @@ namespace TodoApp.ViewModels
             var updatedParent = await _todoService.GetTaskByIdAsync(parentTask.Id);
             if (updatedParent != null)
             {
-                // Update in the ObservableCollection
-                var index = Tasks.IndexOf(parentTask);
-                if (index >= 0)
-                {
-                    Tasks[index] = updatedParent;
-                    SelectedTask = updatedParent;
-                }
+                // Sync main and column collections by ID
+                var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (index >= 0) Tasks[index] = updatedParent;
+
+                var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (todoIdx >= 0) TodoTasks[todoIdx] = updatedParent;
+
+                var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (inProgIdx >= 0) InProgressTasks[inProgIdx] = updatedParent;
+
+                var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (doneIdx >= 0) DoneTasks[doneIdx] = updatedParent;
+
+                // Unconditionally update SelectedTask to trigger UI property binding refresh
+                SelectedTask = updatedParent;
             }
         }
 
@@ -812,16 +841,21 @@ namespace TodoApp.ViewModels
             var parentTask = await _todoService.GetTaskByIdAsync(subtask.ParentTaskId.Value);
             if (parentTask != null)
             {
-                var existingParent = Tasks.FirstOrDefault(t => t.Id == parentTask.Id);
-                if (existingParent != null)
-                {
-                    var index = Tasks.IndexOf(existingParent);
-                    if (index >= 0)
-                    {
-                        Tasks[index] = parentTask;
-                        SelectedTask = parentTask;
-                    }
-                }
+                // Sync main and column collections by ID
+                var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (index >= 0) Tasks[index] = parentTask;
+
+                var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (todoIdx >= 0) TodoTasks[todoIdx] = parentTask;
+
+                var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (inProgIdx >= 0) InProgressTasks[inProgIdx] = parentTask;
+
+                var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (doneIdx >= 0) DoneTasks[doneIdx] = parentTask;
+
+                // Unconditionally update SelectedTask to trigger UI property binding refresh
+                SelectedTask = parentTask;
             }
         }
 
@@ -839,16 +873,21 @@ namespace TodoApp.ViewModels
                 var parentTask = await _todoService.GetTaskByIdAsync(subtask.ParentTaskId.Value);
                 if (parentTask != null)
                 {
-                    var existingParent = Tasks.FirstOrDefault(t => t.Id == parentTask.Id);
-                    if (existingParent != null)
-                    {
-                        var index = Tasks.IndexOf(existingParent);
-                        if (index >= 0)
-                        {
-                            Tasks[index] = parentTask;
-                            SelectedTask = parentTask;
-                        }
-                    }
+                    // Sync main and column collections by ID
+                    var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (index >= 0) Tasks[index] = parentTask;
+
+                    var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (todoIdx >= 0) TodoTasks[todoIdx] = parentTask;
+
+                    var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (inProgIdx >= 0) InProgressTasks[inProgIdx] = parentTask;
+
+                    var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (doneIdx >= 0) DoneTasks[doneIdx] = parentTask;
+
+                    // Unconditionally update SelectedTask to trigger UI property binding refresh
+                    SelectedTask = parentTask;
                 }
             };
             IsConfirmDialogVisible = true;
