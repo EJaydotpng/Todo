@@ -155,9 +155,10 @@ namespace TodoApp.Services
         {
             table.ColumnsDefinition(columns =>
             {
-                columns.RelativeColumn(4); // Title & Subtasks
-                columns.RelativeColumn(2); // Date Started
-                columns.RelativeColumn(2); // Date Finished
+                columns.RelativeColumn(3.5f); // Title & Subtasks
+                columns.RelativeColumn(2);    // Date Started
+                columns.RelativeColumn(2);    // Date Finished
+                columns.RelativeColumn(1.8f); // Due Date
                 columns.RelativeColumn(1.5f); // Status
             });
 
@@ -167,6 +168,7 @@ namespace TodoApp.Services
                 header.Cell().Background(Colors.Indigo.Darken3).Padding(6).Text("Task Title").Bold().FontColor(Colors.White).FontSize(9);
                 header.Cell().Background(Colors.Indigo.Darken3).Padding(6).Text("Date Started").Bold().FontColor(Colors.White).FontSize(9);
                 header.Cell().Background(Colors.Indigo.Darken3).Padding(6).Text("Date Finished").Bold().FontColor(Colors.White).FontSize(9);
+                header.Cell().Background(Colors.Indigo.Darken3).Padding(6).Text("Due Date").Bold().FontColor(Colors.White).FontSize(9);
                 header.Cell().Background(Colors.Indigo.Darken3).Padding(6).Text("Status").Bold().FontColor(Colors.White).FontSize(9).AlignCenter();
             });
 
@@ -205,6 +207,10 @@ namespace TodoApp.Services
                 // Date Finished
                 var dateFinishedText = task.DateFinished.HasValue ? task.DateFinished.Value.ToString("yyyy-MM-dd") : "-";
                 table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(6).Text(dateFinishedText);
+
+                // Due Date
+                var dueDateText = task.DueDate.HasValue ? task.DueDate.Value.ToString("yyyy-MM-dd") : "-";
+                table.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(6).Text(dueDateText);
 
                 // Status
                 var statusText = task.IsFinished ? "Finished" : "Pending";

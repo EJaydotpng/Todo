@@ -43,6 +43,16 @@ namespace TodoApp.Services
             {
                 // Ignored (column already exists or DB was already created with it)
             }
+
+            // Safe SQLite migration to add DueDate column to TaskItems if it doesn't exist
+            try
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE TaskItems ADD COLUMN DueDate TEXT;");
+            }
+            catch
+            {
+                // Ignored (column already exists or DB was already created with it)
+            }
         }
 
         // Category CRUD

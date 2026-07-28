@@ -14,6 +14,7 @@ namespace TodoApp.Models
 
         public DateTime DateStarted { get; set; } = DateTime.Now;
         public DateTime? DateFinished { get; set; }
+        public DateTime? DueDate { get; set; }
         public bool IsFinished { get; set; }
         public string? SubCategory { get; set; }
         public string Status { get; set; } = "To Do";
