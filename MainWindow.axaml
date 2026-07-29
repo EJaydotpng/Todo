@@ -823,7 +823,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsTaskDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="450" 
                     VerticalAlignment="Center" 
@@ -891,7 +891,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsCategoryDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="380" 
                     VerticalAlignment="Center" 
@@ -927,7 +927,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsSubtaskDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="380" 
                     VerticalAlignment="Center" 
@@ -964,7 +964,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsCompleteTaskDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="400" 
                     VerticalAlignment="Center" 
@@ -1006,7 +1006,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsConfirmDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="400" 
                     VerticalAlignment="Center" 
@@ -1038,7 +1038,7 @@
         <Grid Grid.Column="0" Grid.ColumnSpan="3" 
               Background="#80000000" 
               IsVisible="{Binding IsAlertDialogVisible}">
-            <Border Background="White" 
+            <Border Background="{DynamicResource CardBackgroundBrush}" 
                     CornerRadius="12" 
                     Width="380" 
                     VerticalAlignment="Center" 
