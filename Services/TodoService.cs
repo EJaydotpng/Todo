@@ -128,6 +128,11 @@ namespace TodoApp.Services
 
         public async Task UpdateTaskAsync(TaskItem task)
         {
+            var tracked = _dbContext.TaskItems.Local.FirstOrDefault(t => t.Id == task.Id);
+            if (tracked != null)
+            {
+                _dbContext.Entry(tracked).State = EntityState.Detached;
+            }
             _dbContext.Entry(task).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
         }

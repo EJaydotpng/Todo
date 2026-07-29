@@ -1061,6 +1061,7 @@ namespace TodoApp.ViewModels
         private async Task ExportDatabaseAsync()
         {
             IsDataModalVisible = false; // Hide mobile selection overlay
+            IsSettingsDialogVisible = false; // Hide settings overlay if open
             var fileName = $"TodoBackup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
             var filePath = await _storageService.SaveFileDialogAsync(fileName, "db", "SQLite Database (*.db)");
 
@@ -1084,6 +1085,7 @@ namespace TodoApp.ViewModels
         private async Task ImportDatabaseAsync()
         {
             IsDataModalVisible = false; // Hide mobile selection overlay
+            IsSettingsDialogVisible = false; // Hide settings overlay if open
             ConfirmTitle = "Restore Database";
             ConfirmMessage = "Are you sure you want to restore? This will overwrite your current tasks and categories with the selected backup file.";
             _confirmCallback = async () =>
