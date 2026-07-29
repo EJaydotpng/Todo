@@ -10,6 +10,9 @@ A sleek, modern, and cross-platform desktop task manager built using **.NET 10**
 
 ## Features
 
+* **Dark Mode & Theming Support:** Easily switch between bright light mode and sleek dark mode from the centralized settings menu, featuring fully dynamic resource brushes for modal overlays, floating dialogs, and task cards.
+* **Drag-and-Drop Kanban Board:** Organize your tasks seamlessly with intuitive drag-and-drop mechanics across To Do, In Progress, and Done columns with native ghost card previews.
+* **Centralized Settings & Data Management:** Access visual preferences, data backup, and data restore functionalities seamlessly from a dedicated Settings dialog (with distraction-free confirmation overlays).
 * **Category & Sub-Category Organization:** Group tasks case-insensitively and keep track of your task streams.
 * **Hierarchical Subtasks:** Create and toggle multi-level nested checklists inside any main task.
 * **Professional PDF Report Generation:** Generate beautifully designed PDF summary reports of your current tasks using **QuestPDF**.

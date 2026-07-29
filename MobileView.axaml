@@ -12,7 +12,7 @@
         <!-- ================= HEADER ================= -->
         <Border Grid.Row="0" Background="{DynamicResource PrimaryBrush}" Padding="15,35,15,12">
             <Grid ColumnDefinitions="*,auto,auto">
-                <TextBlock Text="ProTasks" 
+                <TextBlock Text="Focal Point" 
                            FontSize="20" 
                            FontWeight="Bold" 
                            Foreground="White" 
@@ -142,8 +142,8 @@
                                                         <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!Category}">
                                                             <TextBlock Text="{Binding Category.Name}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
                                                         </Border>
-                                                        <Border Background="#FFF3E0" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
-                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="#E65100"/>
+                                                        <Border Background="Transparent" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
+                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </StackPanel>
@@ -198,8 +198,8 @@
                                                         <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!Category}">
                                                             <TextBlock Text="{Binding Category.Name}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
                                                         </Border>
-                                                        <Border Background="#FFF3E0" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
-                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="#E65100"/>
+                                                        <Border Background="Transparent" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
+                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </StackPanel>
@@ -254,8 +254,8 @@
                                                         <Border Background="{DynamicResource PrimaryLightBrush}" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!Category}">
                                                             <TextBlock Text="{Binding Category.Name}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}"/>
                                                         </Border>
-                                                        <Border Background="#FFF3E0" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
-                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="#E65100"/>
+                                                        <Border Background="Transparent" BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1" CornerRadius="10" Padding="8,3" IsVisible="{Binding !!SubCategory}">
+                                                            <TextBlock Text="{Binding SubCategory}" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"/>
                                                         </Border>
                                                     </StackPanel>
                                                 </StackPanel>
@@ -281,9 +281,17 @@
 
         <!-- ================= BOTTOM TOOLBAR (DATA & REPORTS) ================= -->
         <Border Grid.Row="5" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0" Padding="15,12">
-            <Grid ColumnDefinitions="*,*">
+            <Grid ColumnDefinitions="*,*,*">
+                <!-- Settings Modal Trigger -->
+                <Button Grid.Column="0" Content="Settings" 
+                        Command="{Binding OpenSettingsCommand}"
+                        Classes="TextButton" 
+                        HorizontalAlignment="Center" 
+                        FontSize="14"
+                        FontWeight="Bold"/>
+
                 <!-- Data Modal Trigger -->
-                <Button Grid.Column="0" Content="Data" 
+                <Button Grid.Column="1" Content="Data" 
                         Command="{Binding OpenDataModalCommand}"
                         Classes="TextButton" 
                         HorizontalAlignment="Center" 
@@ -291,7 +299,7 @@
                         FontWeight="Bold"/>
                 
                 <!-- Report Modal Trigger -->
-                <Button Grid.Column="1" Content="Report" 
+                <Button Grid.Column="2" Content="Report" 
                         Command="{Binding OpenReportModalCommand}"
                         Classes="TextButton" 
                         HorizontalAlignment="Center" 
@@ -636,6 +644,25 @@
                         <Button Grid.Column="0" Content="Cancel" Command="{Binding CloseSubtaskDialogCommand}" Classes="TextButton" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
                         <Button Grid.Column="1" Content="Save" Command="{Binding AddSubtaskCommand}" CommandParameter="{Binding SelectedTask}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
                     </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ================= SETTINGS OVERLAY MODAL ================= -->
+        <Grid Grid.Row="0" Grid.RowSpan="6" Background="#80000000" IsVisible="{Binding IsSettingsDialogVisible}">
+            <Border Background="{DynamicResource CardBackgroundBrush}" CornerRadius="12" Padding="20" VerticalAlignment="Center" MaxWidth="320">
+                <StackPanel Spacing="15">
+                    <TextBlock Text="Settings" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource PrimaryBrush}" HorizontalAlignment="Left"/>
+                    
+                    <StackPanel Spacing="5" Margin="0,0,0,10">
+                        <TextBlock Text="APPEARANCE" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <Grid ColumnDefinitions="*,auto">
+                            <TextBlock Text="Dark Mode" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" IsChecked="{Binding IsDarkMode, Mode=TwoWay}" OnContent="" OffContent="" Margin="0" Padding="0"/>
+                        </Grid>
+                    </StackPanel>
+
+                    <Button Content="Close" Command="{Binding CloseSettingsCommand}" Classes="ModernButton" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="14"/>
                 </StackPanel>
             </Border>
         </Grid>
