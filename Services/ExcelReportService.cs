@@ -60,6 +60,7 @@ namespace TodoApp.Services
                         Description = task.Description ?? "",
                         DateStarted = task.DateStarted,
                         DateFinished = task.DateFinished,
+                        DueDate = task.DueDate,
                         Status = task.IsFinished ? "Finished" : "Pending"
                     });
 
@@ -77,6 +78,7 @@ namespace TodoApp.Services
                                 Description = subtask.Description ?? "",
                                 DateStarted = subtask.DateStarted,
                                 DateFinished = subtask.DateFinished,
+                                DueDate = subtask.DueDate,
                                 Status = subtask.IsFinished ? "Finished" : "Pending"
                             });
                         }
@@ -97,6 +99,7 @@ namespace TodoApp.Services
                     Description = task.Description ?? "",
                     DateStarted = task.DateStarted,
                     DateFinished = task.DateFinished,
+                    DueDate = task.DueDate,
                     Status = task.IsFinished ? "Finished" : "Pending"
                 });
 
@@ -114,6 +117,7 @@ namespace TodoApp.Services
                             Description = subtask.Description ?? "",
                             DateStarted = subtask.DateStarted,
                             DateFinished = subtask.DateFinished,
+                            DueDate = subtask.DueDate,
                             Status = subtask.IsFinished ? "Finished" : "Pending"
                         });
                     }
@@ -166,7 +170,7 @@ namespace TodoApp.Services
                 // Table Headers
                 string[] headers = {
                     "Category", "Sub-Category", "Task Title", "Is Subtask",
-                    "Parent Task Title", "Description", "Date Started", "Date Finished", "Status"
+                    "Parent Task Title", "Description", "Date Started", "Date Finished", "Due Date", "Status"
                 };
 
                 int startRow = 9;
@@ -209,8 +213,20 @@ namespace TodoApp.Services
                         cellDateFinished.Value = "";
                     }
 
+                    // Due Date
+                    var cellDueDate = worksheet.Cells[currentRow, 9];
+                    if (row.DueDate.HasValue)
+                    {
+                        cellDueDate.Value = row.DueDate.Value;
+                        cellDueDate.Style.Numberformat.Format = "yyyy-mm-dd";
+                    }
+                    else
+                    {
+                        cellDueDate.Value = "";
+                    }
+
                     // Status
-                    var cellStatus = worksheet.Cells[currentRow, 9];
+                    var cellStatus = worksheet.Cells[currentRow, 10];
                     cellStatus.Value = row.Status;
                     cellStatus.Style.Font.Bold = true;
                     if (row.Status == "Finished")
@@ -261,6 +277,7 @@ namespace TodoApp.Services
             public string Description { get; set; } = string.Empty;
             public DateTime DateStarted { get; set; }
             public DateTime? DateFinished { get; set; }
+            public DateTime? DueDate { get; set; }
             public string Status { get; set; } = string.Empty;
         }
     }

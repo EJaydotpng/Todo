@@ -21,6 +21,9 @@ namespace TodoApp.ViewModels
         // Collections
         public ObservableCollection<Category> Categories { get; } = new ObservableCollection<Category>();
         public ObservableCollection<TaskItem> Tasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> TodoTasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> InProgressTasks { get; } = new ObservableCollection<TaskItem>();
+        public ObservableCollection<TaskItem> DoneTasks { get; } = new ObservableCollection<TaskItem>();
 
         // Navigation & Selection
         private Category? _selectedCategory;
@@ -31,11 +34,7 @@ namespace TodoApp.ViewModels
             {
                 if (SetProperty(ref _selectedCategory, value))
                 {
-                    if (value != null)
-                    {
-                        IsFinishedViewActive = false;
-                        IsAllTasksViewActive = false;
-                    }
+                    System.IO.File.WriteAllText("SelectedCategoryLog.txt", $"Category changed to: {value?.Name ?? "null"}");
                     _searchText = string.Empty;
                     OnPropertyChanged(nameof(SearchText));
                     OnPropertyChanged(nameof(ViewTitle));
@@ -52,40 +51,23 @@ namespace TodoApp.ViewModels
             {
                 if (SetProperty(ref _isFinishedViewActive, value))
                 {
-                    if (value)
-                    {
-                        _selectedCategory = null;
-                        OnPropertyChanged(nameof(SelectedCategory));
-                        _isAllTasksViewActive = false;
-                        OnPropertyChanged(nameof(IsAllTasksViewActive));
-                    }
                     _searchText = string.Empty;
                     OnPropertyChanged(nameof(SearchText));
                     OnPropertyChanged(nameof(ViewTitle));
+                    OnPropertyChanged(nameof(IsAllTasksViewActive));
                     _ = LoadTasksAsync();
                 }
             }
         }
 
-        private bool _isAllTasksViewActive = true;
         public bool IsAllTasksViewActive
         {
-            get => _isAllTasksViewActive;
+            get => !_isFinishedViewActive;
             set
             {
-                if (SetProperty(ref _isAllTasksViewActive, value))
+                if (value)
                 {
-                    if (value)
-                    {
-                        _selectedCategory = null;
-                        OnPropertyChanged(nameof(SelectedCategory));
-                        _isFinishedViewActive = false;
-                        OnPropertyChanged(nameof(IsFinishedViewActive));
-                    }
-                    _searchText = string.Empty;
-                    OnPropertyChanged(nameof(SearchText));
-                    OnPropertyChanged(nameof(ViewTitle));
-                    _ = LoadTasksAsync();
+                    IsFinishedViewActive = false;
                 }
             }
         }
@@ -118,7 +100,15 @@ namespace TodoApp.ViewModels
         public TaskItem? SelectedTask
         {
             get => _selectedTask;
-            set => SetProperty(ref _selectedTask, value);
+            set
+            {
+                // If we are currently completing a task (entering status), reject any selection to prevent overlapping overlays!
+                if (IsCompleteTaskDialogVisible && value != null)
+                {
+                    return;
+                }
+                SetProperty(ref _selectedTask, value);
+            }
         }
 
         // Form Fields (Inline Adding)
@@ -135,6 +125,13 @@ namespace TodoApp.ViewModels
         {
             get => _isTaskDialogVisible;
             set => SetProperty(ref _isTaskDialogVisible, value);
+        }
+
+        private bool _isSettingsDialogVisible;
+        public bool IsSettingsDialogVisible
+        {
+            get => _isSettingsDialogVisible;
+            set => SetProperty(ref _isSettingsDialogVisible, value);
         }
 
         private bool _isEditMode;
@@ -170,6 +167,13 @@ namespace TodoApp.ViewModels
         {
             get => _dialogTaskSubCategory;
             set => SetProperty(ref _dialogTaskSubCategory, value);
+        }
+
+        private DateTimeOffset? _dialogTaskDueDate;
+        public DateTimeOffset? DialogTaskDueDate
+        {
+            get => _dialogTaskDueDate;
+            set => SetProperty(ref _dialogTaskDueDate, value);
         }
 
         private int? _editingTaskId;
@@ -240,6 +244,22 @@ namespace TodoApp.ViewModels
             }
         }
 
+        // Categories filtering in Completed tasks list
+        public ObservableCollection<Category> CompletedFilterCategories { get; } = new ObservableCollection<Category>();
+
+        private Category? _selectedCompletedCategory;
+        public Category? SelectedCompletedCategory
+        {
+            get => _selectedCompletedCategory;
+            set
+            {
+                if (SetProperty(ref _selectedCompletedCategory, value))
+                {
+                    _ = LoadTasksAsync();
+                }
+            }
+        }
+
         // Subtask Form Fields
         private string _newSubtaskTitle = string.Empty;
         public string NewSubtaskTitle
@@ -286,6 +306,83 @@ namespace TodoApp.ViewModels
             set => SetProperty(ref _alertMessage, value);
         }
 
+        private bool _isSidebarCollapsed;
+        public bool IsSidebarCollapsed
+        {
+            get => _isSidebarCollapsed;
+            set
+            {
+                if (SetProperty(ref _isSidebarCollapsed, value))
+                {
+                    OnPropertyChanged(nameof(SidebarWidth));
+                    OnPropertyChanged(nameof(IsSidebarExpanded));
+                }
+            }
+        }
+
+        public double SidebarWidth => IsSidebarCollapsed ? 80 : 260;
+        public bool IsSidebarExpanded => !IsSidebarCollapsed;
+
+        private bool _isDarkMode;
+        public bool IsDarkMode
+        {
+            get => _isDarkMode;
+            set
+            {
+                if (SetProperty(ref _isDarkMode, value))
+                {
+                    if (Avalonia.Application.Current != null)
+                    {
+                        Avalonia.Application.Current.RequestedThemeVariant = value 
+                            ? Avalonia.Styling.ThemeVariant.Dark 
+                            : Avalonia.Styling.ThemeVariant.Light;
+                    }
+                    SaveSettings(value);
+                }
+            }
+        }
+
+        private void SaveSettings(bool isDark)
+        {
+            try
+            {
+                string appDataFolder = System.IO.Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                    "TodoStudio");
+                System.IO.Directory.CreateDirectory(appDataFolder);
+                string settingsPath = System.IO.Path.Combine(appDataFolder, "settings.txt");
+                System.IO.File.WriteAllText(settingsPath, isDark.ToString());
+            }
+            catch
+            {
+                // Fail-silent
+            }
+        }
+
+        private bool LoadSettings()
+        {
+            try
+            {
+                string appDataFolder = System.IO.Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                    "TodoStudio");
+                string settingsPath = System.IO.Path.Combine(appDataFolder, "settings.txt");
+                if (System.IO.File.Exists(settingsPath))
+                {
+                    string content = System.IO.File.ReadAllText(settingsPath);
+                    if (bool.TryParse(content, out bool isDark))
+                    {
+                        return isDark;
+                    }
+                }
+            }
+            catch
+            {
+                // Fail-silent
+            }
+            return false; // Default is Light mode
+        }
+
         // Commands
         public ICommand InitializeCommand { get; }
         public ICommand RefreshCommand { get; }
@@ -327,6 +424,14 @@ namespace TodoApp.ViewModels
         public ICommand CloseDataModalCommand { get; }
         public ICommand OpenReportModalCommand { get; }
         public ICommand CloseReportModalCommand { get; }
+        public ICommand MoveTaskForwardCommand { get; }
+        public ICommand MoveTaskBackwardCommand { get; }
+        public ICommand ToggleSidebarCommand { get; }
+        public ICommand ToggleDarkModeCommand { get; }
+        public ICommand ClearCategoryFilterCommand { get; }
+        public ICommand SelectCategoryCommand { get; }
+        public ICommand OpenSettingsCommand { get; }
+        public ICommand CloseSettingsCommand { get; }
 
         // Confirm Overlay Dialog Commands
         public ICommand ConfirmCommand { get; }
@@ -340,6 +445,9 @@ namespace TodoApp.ViewModels
             _pdfReportService = pdfReportService;
             _excelReportService = excelReportService;
             _storageService = storageService;
+
+            // Load and apply theme immediately on constructor thread!
+            IsDarkMode = LoadSettings();
 
             // Initialize commands
             InitializeCommand = new AsyncRelayCommand(InitializeAsync);
@@ -372,6 +480,43 @@ namespace TodoApp.ViewModels
             GenerateExcelReportCommand = new AsyncRelayCommand(GenerateExcelReportAsync);
             ExportDatabaseCommand = new AsyncRelayCommand(ExportDatabaseAsync);
             ImportDatabaseCommand = new AsyncRelayCommand(ImportDatabaseAsync);
+            MoveTaskForwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskForwardAsync);
+            MoveTaskBackwardCommand = new AsyncRelayCommand<TaskItem>(MoveTaskBackwardAsync);
+            ToggleSidebarCommand = new RelayCommand(() => IsSidebarCollapsed = !IsSidebarCollapsed);
+            ToggleDarkModeCommand = new RelayCommand(() => IsDarkMode = !IsDarkMode);
+            ClearCategoryFilterCommand = new RelayCommand(() => SelectedCategory = null);
+            SelectCategoryCommand = new RelayCommand<Category>((cat) => {
+                if (SelectedCategory?.Id == cat?.Id)
+                {
+                    SelectedCategory = null;
+                }
+                else
+                {
+                    SelectedCategory = cat;
+                }
+            });
+            OpenSettingsCommand = new RelayCommand(() => IsSettingsDialogVisible = true);
+            CloseSettingsCommand = new RelayCommand(() => IsSettingsDialogVisible = false);
+            SelectCategoryCommand = new RelayCommand<Category>((cat) => {
+                if (SelectedCategory?.Id == cat?.Id)
+                {
+                    SelectedCategory = null;
+                }
+                else
+                {
+                    SelectedCategory = cat;
+                }
+            });
+            SelectCategoryCommand = new RelayCommand<Category>((cat) => {
+                if (SelectedCategory?.Id == cat?.Id)
+                {
+                    SelectedCategory = null;
+                }
+                else
+                {
+                    SelectedCategory = cat;
+                }
+            });
 
             // Overlay controls commands
             ConfirmCommand = new AsyncRelayCommand(async () =>
@@ -422,17 +567,45 @@ namespace TodoApp.ViewModels
             {
                 Categories.Add(category);
             }
+
+            // Sync the Completed view category filtering options (with "All Categories" placeholder)
+            CompletedFilterCategories.Clear();
+            var allCat = new Category { Id = -1, Name = "All Categories" };
+            CompletedFilterCategories.Add(allCat);
+            foreach (var category in categories)
+            {
+                CompletedFilterCategories.Add(category);
+            }
+            
+            // Set default selected category filter if not already set
+            if (SelectedCompletedCategory == null)
+            {
+                SelectedCompletedCategory = allCat;
+            }
         }
 
         public async Task LoadTasksAsync()
         {
             Tasks.Clear();
+            TodoTasks.Clear();
+            InProgressTasks.Clear();
+            DoneTasks.Clear();
             SelectedTask = null;
+
+            List<TaskItem> allRootTasks = new List<TaskItem>();
 
             if (IsFinishedViewActive)
             {
-                // Load all finished tasks
+                // In Completed View, we only show finished/completed tasks (Status == "Done")
                 var finishedTasks = await _todoService.GetRootTasksAsync(isFinished: true);
+
+                // Filter by the sidebar's SelectedCategory if one is selected!
+                if (SelectedCategory != null)
+                {
+                    finishedTasks = finishedTasks
+                        .Where(t => t.CategoryId == SelectedCategory.Id)
+                        .ToList();
+                }
 
                 // Filter by subcategory if a specific one is selected (case-insensitive)
                 if (SelectedCompletedSubCategory != null && SelectedCompletedSubCategory != "All Subcategories")
@@ -453,52 +626,60 @@ namespace TodoApp.ViewModels
                     ).ToList();
                 }
 
-                foreach (var task in finishedTasks)
-                {
-                    Tasks.Add(task);
-                }
+                allRootTasks.AddRange(finishedTasks);
             }
-            else if (IsAllTasksViewActive)
+            else
             {
-                // Load all unfinished tasks
+                // In Active Tasks View (Kanban Board), we show unfinished and finished tasks
                 var unfinishedTasks = await _todoService.GetRootTasksAsync(isFinished: false);
+                var finishedTasks = await _todoService.GetRootTasksAsync(isFinished: true); // include finished so they show up on the Board!
 
-                // Filter by search query (case-insensitive contains)
-                if (!string.IsNullOrWhiteSpace(SearchText))
+                // Filter by the sidebar's SelectedCategory if one is selected!
+                if (SelectedCategory != null)
                 {
-                    var query = SearchText.Trim();
-                    unfinishedTasks = unfinishedTasks.Where(t => 
-                        t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
-                        (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                        (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    ).ToList();
+                    unfinishedTasks = unfinishedTasks.Where(t => t.CategoryId == SelectedCategory.Id).ToList();
+                    finishedTasks = finishedTasks.Where(t => t.CategoryId == SelectedCategory.Id).ToList();
                 }
 
-                foreach (var task in unfinishedTasks)
-                {
-                    Tasks.Add(task);
-                }
+                allRootTasks.AddRange(unfinishedTasks);
+                allRootTasks.AddRange(finishedTasks);
             }
-            else if (SelectedCategory != null)
+
+            // Filter by search query (case-insensitive contains) if applicable
+            if (!string.IsNullOrWhiteSpace(SearchText))
             {
-                // Load tasks by selected category
-                var catTasks = await _todoService.GetRootTasksByCategoryAsync(SelectedCategory.Id, isFinished: false);
+                var query = SearchText.Trim();
+                allRootTasks = allRootTasks.Where(t => 
+                    t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
+                    (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
+                    (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+            }
 
-                // Filter by search query (case-insensitive contains)
-                if (!string.IsNullOrWhiteSpace(SearchText))
+            // Distribute tasks to the 3 columns based on their Status property
+            foreach (var task in allRootTasks)
+            {
+                // Make sure Status is set (auto-migrate if empty)
+                if (string.IsNullOrEmpty(task.Status))
                 {
-                    var query = SearchText.Trim();
-                    catTasks = catTasks.Where(t => 
-                        t.Title.Contains(query, StringComparison.OrdinalIgnoreCase) || 
-                        (t.Description != null && t.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
-                        (t.SubCategory != null && t.SubCategory.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    ).ToList();
+                    task.Status = task.IsFinished ? "Done" : "To Do";
                 }
 
-                foreach (var task in catTasks)
+                if (task.Status == "Done")
                 {
-                    Tasks.Add(task);
+                    DoneTasks.Add(task);
                 }
+                else if (task.Status == "In Progress")
+                {
+                    InProgressTasks.Add(task);
+                }
+                else
+                {
+                    TodoTasks.Add(task);
+                }
+
+                // Also populate the flat legacy collection for other components if needed
+                Tasks.Add(task);
             }
         }
 
@@ -545,6 +726,7 @@ namespace TodoApp.ViewModels
             DialogTaskDescription = string.Empty;
             DialogTaskCategory = SelectedCategory; // Auto-select current category
             DialogTaskSubCategory = string.Empty;
+            DialogTaskDueDate = null; // Reset due date for new task
             _editingTaskId = null;
             IsTaskDialogVisible = true;
         }
@@ -558,6 +740,7 @@ namespace TodoApp.ViewModels
             DialogTaskDescription = task.Description ?? string.Empty;
             DialogTaskCategory = Categories.FirstOrDefault(c => c.Id == task.CategoryId);
             DialogTaskSubCategory = task.SubCategory ?? string.Empty;
+            DialogTaskDueDate = task.DueDate.HasValue ? new DateTimeOffset(task.DueDate.Value) : null; // Load existing due date
             _editingTaskId = task.Id;
             IsTaskDialogVisible = true;
         }
@@ -586,6 +769,7 @@ namespace TodoApp.ViewModels
                     task.Description = DialogTaskDescription;
                     task.CategoryId = DialogTaskCategory?.Id;
                     task.SubCategory = string.IsNullOrWhiteSpace(DialogTaskSubCategory) ? null : DialogTaskSubCategory;
+                    task.DueDate = DialogTaskDueDate?.DateTime; // Save modified due date
                     await _todoService.UpdateTaskAsync(task);
                 }
             }
@@ -598,6 +782,7 @@ namespace TodoApp.ViewModels
                     Description = DialogTaskDescription,
                     CategoryId = DialogTaskCategory?.Id,
                     SubCategory = string.IsNullOrWhiteSpace(DialogTaskSubCategory) ? null : DialogTaskSubCategory,
+                    DueDate = DialogTaskDueDate?.DateTime, // Save new due date
                     DateStarted = DateTime.Now,
                     IsFinished = false
                 };
@@ -629,6 +814,9 @@ namespace TodoApp.ViewModels
 
             if (!task.IsFinished)
             {
+                // Unselect task so the details floating window doesn't pop up!
+                SelectedTask = null;
+
                 // We are completing the task! Open the custom completion overlay modal
                 TaskBeingCompleted = task;
                 CompleteTaskSubCategory = string.Empty;
@@ -640,6 +828,7 @@ namespace TodoApp.ViewModels
                 task.IsFinished = false;
                 task.DateFinished = null;
                 task.SubCategory = null; // Clear subcategory on reactivation
+                task.Status = "To Do"; // Move back to To Do
 
                 await _todoService.UpdateTaskAsync(task);
                 await LoadCompletedSubCategoriesAsync();
@@ -654,6 +843,7 @@ namespace TodoApp.ViewModels
             TaskBeingCompleted.IsFinished = true;
             TaskBeingCompleted.DateFinished = DateTime.Now;
             TaskBeingCompleted.SubCategory = string.IsNullOrWhiteSpace(CompleteTaskSubCategory) ? null : CompleteTaskSubCategory;
+            TaskBeingCompleted.Status = "Done"; // Mark status as Done so it leaves In Progress!
 
             // Optional polish: If main task is completed, mark all its subtasks as completed
             if (TaskBeingCompleted.Subtasks != null)
@@ -739,13 +929,21 @@ namespace TodoApp.ViewModels
             var updatedParent = await _todoService.GetTaskByIdAsync(parentTask.Id);
             if (updatedParent != null)
             {
-                // Update in the ObservableCollection
-                var index = Tasks.IndexOf(parentTask);
-                if (index >= 0)
-                {
-                    Tasks[index] = updatedParent;
-                    SelectedTask = updatedParent;
-                }
+                // Sync main and column collections by ID
+                var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (index >= 0) Tasks[index] = updatedParent;
+
+                var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (todoIdx >= 0) TodoTasks[todoIdx] = updatedParent;
+
+                var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (inProgIdx >= 0) InProgressTasks[inProgIdx] = updatedParent;
+
+                var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (doneIdx >= 0) DoneTasks[doneIdx] = updatedParent;
+
+                // Unconditionally update SelectedTask to trigger UI property binding refresh
+                SelectedTask = updatedParent;
             }
         }
 
@@ -761,16 +959,21 @@ namespace TodoApp.ViewModels
             var parentTask = await _todoService.GetTaskByIdAsync(subtask.ParentTaskId.Value);
             if (parentTask != null)
             {
-                var existingParent = Tasks.FirstOrDefault(t => t.Id == parentTask.Id);
-                if (existingParent != null)
-                {
-                    var index = Tasks.IndexOf(existingParent);
-                    if (index >= 0)
-                    {
-                        Tasks[index] = parentTask;
-                        SelectedTask = parentTask;
-                    }
-                }
+                // Sync main and column collections by ID
+                var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (index >= 0) Tasks[index] = parentTask;
+
+                var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (todoIdx >= 0) TodoTasks[todoIdx] = parentTask;
+
+                var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (inProgIdx >= 0) InProgressTasks[inProgIdx] = parentTask;
+
+                var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                if (doneIdx >= 0) DoneTasks[doneIdx] = parentTask;
+
+                // Unconditionally update SelectedTask to trigger UI property binding refresh
+                SelectedTask = parentTask;
             }
         }
 
@@ -788,16 +991,21 @@ namespace TodoApp.ViewModels
                 var parentTask = await _todoService.GetTaskByIdAsync(subtask.ParentTaskId.Value);
                 if (parentTask != null)
                 {
-                    var existingParent = Tasks.FirstOrDefault(t => t.Id == parentTask.Id);
-                    if (existingParent != null)
-                    {
-                        var index = Tasks.IndexOf(existingParent);
-                        if (index >= 0)
-                        {
-                            Tasks[index] = parentTask;
-                            SelectedTask = parentTask;
-                        }
-                    }
+                    // Sync main and column collections by ID
+                    var index = Tasks.IndexOf(Tasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (index >= 0) Tasks[index] = parentTask;
+
+                    var todoIdx = TodoTasks.IndexOf(TodoTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (todoIdx >= 0) TodoTasks[todoIdx] = parentTask;
+
+                    var inProgIdx = InProgressTasks.IndexOf(InProgressTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (inProgIdx >= 0) InProgressTasks[inProgIdx] = parentTask;
+
+                    var doneIdx = DoneTasks.IndexOf(DoneTasks.FirstOrDefault(t => t.Id == parentTask.Id)!);
+                    if (doneIdx >= 0) DoneTasks[doneIdx] = parentTask;
+
+                    // Unconditionally update SelectedTask to trigger UI property binding refresh
+                    SelectedTask = parentTask;
                 }
             };
             IsConfirmDialogVisible = true;
@@ -853,6 +1061,7 @@ namespace TodoApp.ViewModels
         private async Task ExportDatabaseAsync()
         {
             IsDataModalVisible = false; // Hide mobile selection overlay
+            IsSettingsDialogVisible = false; // Hide settings overlay if open
             var fileName = $"TodoBackup_{DateTime.Now:yyyyMMdd_HHmmss}.db";
             var filePath = await _storageService.SaveFileDialogAsync(fileName, "db", "SQLite Database (*.db)");
 
@@ -876,6 +1085,7 @@ namespace TodoApp.ViewModels
         private async Task ImportDatabaseAsync()
         {
             IsDataModalVisible = false; // Hide mobile selection overlay
+            IsSettingsDialogVisible = false; // Hide settings overlay if open
             ConfirmTitle = "Restore Database";
             ConfirmMessage = "Are you sure you want to restore? This will overwrite your current tasks and categories with the selected backup file.";
             _confirmCallback = async () =>
@@ -902,6 +1112,50 @@ namespace TodoApp.ViewModels
                 }
             };
             IsConfirmDialogVisible = true;
+        }
+
+        // Move task to next state (To Do -> In Progress -> Done)
+        private async Task MoveTaskForwardAsync(TaskItem? task)
+        {
+            if (task == null) return;
+
+            if (task.Status == "To Do" || string.IsNullOrEmpty(task.Status))
+            {
+                task.Status = "In Progress";
+                task.IsFinished = false;
+                task.DateFinished = null;
+                await _todoService.UpdateTaskAsync(task);
+                await LoadCompletedSubCategoriesAsync();
+                await LoadTasksAsync();
+            }
+            else if (task.Status == "In Progress")
+            {
+                // Moving from In Progress to Done: open the completion dialog!
+                await ToggleTaskStatusAsync(task);
+            }
+        }
+
+        // Move task to previous state (Done -> In Progress -> To Do)
+        private async Task MoveTaskBackwardAsync(TaskItem? task)
+        {
+            if (task == null) return;
+
+            if (task.Status == "Done")
+            {
+                task.Status = "In Progress";
+                task.IsFinished = false;
+                task.DateFinished = null;
+            }
+            else if (task.Status == "In Progress")
+            {
+                task.Status = "To Do";
+                task.IsFinished = false;
+                task.DateFinished = null;
+            }
+
+            await _todoService.UpdateTaskAsync(task);
+            await LoadCompletedSubCategoriesAsync();
+            await LoadTasksAsync();
         }
     }
 }

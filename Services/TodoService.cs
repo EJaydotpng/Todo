@@ -30,6 +30,29 @@ namespace TodoApp.Services
             {
                 // Ignored (column already exists or DB was already created with it)
             }
+
+            // Safe SQLite migration to add Status column to TaskItems if it doesn't exist
+            try
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE TaskItems ADD COLUMN Status TEXT DEFAULT 'To Do';");
+                
+                // Backfill: If a task was already finished under the old system, make sure its status is 'Done'
+                await _dbContext.Database.ExecuteSqlRawAsync("UPDATE TaskItems SET Status = 'Done' WHERE IsFinished = 1 AND (Status IS NULL OR Status = 'To Do');");
+            }
+            catch
+            {
+                // Ignored (column already exists or DB was already created with it)
+            }
+
+            // Safe SQLite migration to add DueDate column to TaskItems if it doesn't exist
+            try
+            {
+                await _dbContext.Database.ExecuteSqlRawAsync("ALTER TABLE TaskItems ADD COLUMN DueDate TEXT;");
+            }
+            catch
+            {
+                // Ignored (column already exists or DB was already created with it)
+            }
         }
 
         // Category CRUD
@@ -68,6 +91,7 @@ namespace TodoApp.Services
         public async Task<List<TaskItem>> GetRootTasksAsync(bool isFinished)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .Where(t => t.ParentTaskId == null && t.IsFinished == isFinished)
@@ -78,6 +102,7 @@ namespace TodoApp.Services
         public async Task<List<TaskItem>> GetRootTasksByCategoryAsync(int? categoryId, bool isFinished)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .Where(t => t.ParentTaskId == null && t.CategoryId == categoryId && t.IsFinished == isFinished)
@@ -88,6 +113,7 @@ namespace TodoApp.Services
         public async Task<TaskItem?> GetTaskByIdAsync(int id)
         {
             return await _dbContext.TaskItems
+                .AsNoTracking()
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .FirstOrDefaultAsync(t => t.Id == id);
@@ -102,6 +128,11 @@ namespace TodoApp.Services
 
         public async Task UpdateTaskAsync(TaskItem task)
         {
+            var tracked = _dbContext.TaskItems.Local.FirstOrDefault(t => t.Id == task.Id);
+            if (tracked != null)
+            {
+                _dbContext.Entry(tracked).State = EntityState.Detached;
+            }
             _dbContext.Entry(task).State = EntityState.Modified;
             await _dbContext.SaveChangesAsync();
         }
